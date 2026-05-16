@@ -103,7 +103,7 @@ def show():
                         (eval_date,batch_number,process_documentation,process_control,
                          internal_audit,corrective_action,continuous_improvement,
                          average_score,category,evaluator,notes)
-                        VALUES(?,?,?,?,?,?,?,?,?,?,?)""",
+                        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
                         (str(ed),bv,scores['process_documentation'],scores['process_control'],
                          scores['internal_audit'],scores['corrective_action'],
                          scores['continuous_improvement'],avg,cat,evlr,notes))

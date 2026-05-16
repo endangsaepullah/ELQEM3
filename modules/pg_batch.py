@@ -125,7 +125,7 @@ def show():
                                 run("""INSERT INTO batch_production
                                     (batch_number,production_date,total_units,total_defect,
                                      total_rework,defect_rate,rework_rate,pic,status,notes)
-                                    VALUES(?,?,?,?,?,?,?,?,?,?)""",
+                                    VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
                                     (bn,str(pd_),tu,td,tr,dr,rr,pc,st_,nt))
                                 st.success(f"✅ Batch {bn} disimpan!")
                                 st.rerun()
@@ -157,7 +157,7 @@ def show():
                             run("""UPDATE batch_production SET
                                 total_units=?,total_defect=?,total_rework=?,
                                 defect_rate=?,rework_rate=?,pic=?,status=?,notes=?,
-                                updated_at=to_char(now(),'YYYY-MM-DD HH24:MI:SS') WHERE batch_number=?""",
+                                updated_at=to_char(now(),'YYYY-MM-DD HH24:MI:SS') WHERE batch_number=%s""",
                                 (tu,td,tr,dr,rr,pc,st_,nt,sel))
                             st.success("✅ Diupdate!")
                             st.rerun()
@@ -194,7 +194,7 @@ def show():
                         run("""INSERT INTO defect_records
                             (batch_id,batch_number,defect_type,defect_stage,quantity,
                              root_cause,corrective_action,pic,follow_up_status,found_date)
-                            VALUES(?,?,?,?,?,?,?,?,?,?)""",
+                            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
                             (int(bid_row['id']),sb,dt,ds,qty,rc,ca_,pic,fus,str(fd_)))
                         st.success(f"✅ Defect disimpan untuk {sb}!")
                         st.rerun()

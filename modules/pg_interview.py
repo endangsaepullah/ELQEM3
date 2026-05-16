@@ -79,7 +79,7 @@ def show():
                         run("""INSERT INTO interview_data
                             (interview_date,informant_name,position,work_unit,
                              interview_result,key_insights,finding_category,interviewer)
-                            VALUES(?,?,?,?,?,?,?,?)""",
+                            VALUES(%s,%s,%s,%s,%s,%s,%s,%s)""",
                             (str(iv_date),name,pos,unit,result,insights,fcat,ivr))
                         st.success(f"✅ Data wawancara {name} tersimpan!")
                         st.rerun()

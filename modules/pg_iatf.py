@@ -94,7 +94,7 @@ def show():
                         INSERT INTO iatf16949_evaluation
                         (eval_date,batch_number,risk_based_thinking,defect_prevention,
                          supplier_quality,continuous_improvement,average_score,category,evaluator,notes)
-                        VALUES(?,?,?,?,?,?,?,?,?,?)""",
+                        VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
                         (str(ed),bv,scores['risk_based_thinking'],scores['defect_prevention'],
                          scores['supplier_quality'],scores['continuous_improvement'],
                          avg,get_category(avg),evlr,notes))
