@@ -62,316 +62,163 @@ header[data-testid="stHeader"]{{display:none!important;}}
     .stMainBlockContainer,.block-container{{padding:.5rem!important;padding-top:50px!important;}}
 }}
 
-/* Radio nav */
-div[data-testid="stRadio"]>label{{display:none!important;}}
-div[data-testid="stRadio"]>div{{
-    display:flex!important;flex-direction:row!important;
-    flex-wrap:nowrap!important;gap:0!important;
-    background:#0d1117!important;border:none!important;
-    overflow-x:auto!important;padding:0!important;
-    border-bottom:1px solid #21262d;
-    position:fixed!important;top:0!important;left:0!important;right:0!important;
-    z-index:200;
-}}
-div[data-testid="stRadio"]>div>label{{
-    display:flex!important;align-items:center!important;
-    padding:0 .85rem!important;height:46px!important;
-    cursor:pointer!important;white-space:nowrap!important;
-    font-family:Inter,sans-serif!important;font-size:.77rem!important;
-    font-weight:500!important;color:#8b949e!important;
-    background:transparent!important;border:none!important;border-radius:0!important;
-    border-bottom:2px solid transparent!important;
-    margin:0!important;flex-shrink:0!important;
-    transition:color .15s,border-color .15s!important;
-}}
-div[data-testid="stRadio"]>div>label:hover{{
-    color:#e6edf3!important;border-bottom-color:#484f58!important;
-    background:rgba(255,255,255,.04)!important;
-}}
-div[data-testid="stRadio"]>div>label:has(input:checked){{
-    color:#e6edf3!important;font-weight:600!important;
-    border-bottom-color:{accent}!important;
-}}
-div[data-testid="stRadio"]>div>label>div:first-child{{display:none!important;}}
-@media(max-width:768px){{
-    div[data-testid="stRadio"]>div{{left:0!important;}}
-    div[data-testid="stRadio"]>div>label{{
-        padding:0 .5rem!important;font-size:.68rem!important;height:42px!important;
-    }}
-}}
+/* nav handled by iqle-nav CSS below */
 </style>
-
-<script>
-function toggleSidebar(){{
-    var sb = window.parent.document.querySelector('[data-testid="stSidebar"]');
-    if(sb) sb.classList.toggle('open');
-}}
-</script>
 """, unsafe_allow_html=True)
-
-# Sidebar
-with st.sidebar:
-    if 'sb_wide' not in st.session_state:
-        st.session_state.sb_wide = True
-    wide = st.session_state.sb_wide
-    sb_w2 = 255 if wide else 72
-    st.markdown(f'<style>section[data-testid="stSidebar"]>div{{min-width:{sb_w2}px!important;max-width:{sb_w2}px!important;}}</style>', unsafe_allow_html=True)
-
-    tc1, tc2 = st.columns([1,3])
-    with tc1:
-        if st.button("◀" if wide else "▶", key="sb_tog"):
-            st.session_state.sb_wide = not wide; st.rerun()
-    with tc2:
-        if wide:
-            st.markdown(f'<span style="font-size:.6rem;color:#3d5470;">CIUTKAN</span>', unsafe_allow_html=True)
-
-    st.markdown('<div style="border-bottom:1px solid rgba(0,212,255,0.1);margin:.4rem 0;"></div>', unsafe_allow_html=True)
-
-    MENU = [
-        (None,"EVALUASI"),("home","Dashboard Utama"),("iso9001","ISO 9001"),
-        ("iatf","IATF 16949"),("lifecycle","Engineering Lifecycle"),
-        ("consistency","Konsistensi Mutu"),("batch","Evaluasi Batch"),
-        (None,"ANALISIS"),("iqscore","Integrated Quality Score"),
-        ("maung","Analisis Mutu MAUNG MV3"),("whatif","Simulasi What-If"),
-        ("hipotesis","Kesimpulan & Hipotesis"),("interview","Data Wawancara"),
-        (None,"PLATFORM"),("about","About Platform"),("theory","Teori & Referensi"),
-        ("users","Manajemen User"),("settings","Pengaturan Platform"),
-    ]
-
-    if not wide:
-        ICONS={"home":"⌂","iso9001":"①","iatf":"②","lifecycle":"③","consistency":"④",
-               "batch":"⑤","iqscore":"⑥","maung":"⑦","whatif":"⑧","hipotesis":"⑨",
-               "interview":"⑩","about":"◉","theory":"◎","users":"◈","settings":"◇"}
-        for pid,label in [(p,l) for p,l in MENU if p]:
-            if pid in ["users","settings"] and not is_admin(): continue
-            if st.button(ICONS.get(pid,"·"), key=f"sbc_{pid}",
-                         use_container_width=True, help=label,
-                         type="primary" if st.session_state.page==pid else "secondary"):
-                st.session_state.page=pid; st.rerun()
-    else:
-        st.markdown(f'''<div style="padding:.4rem 0 .6rem;text-align:center;">
-<div style="font-family:Rajdhani;font-size:1rem;font-weight:700;color:{accent};letter-spacing:2px;">IQLE PLATFORM</div>
-<div style="font-size:.58rem;color:#3d5470;letter-spacing:2px;text-transform:uppercase;">PT Pindad</div>
-</div>''', unsafe_allow_html=True)
-
-        _rc = "#00d4ff" if role=="admin" else "#ffd700"
-        _rl = "ADMIN" if role=="admin" else "VIEWER"
-        _rd = "Akses penuh: input, edit & setting" if role=="admin" else "Akses baca semua modul"
-        st.markdown(f'''<div style="padding:.4rem .7rem;margin-bottom:.5rem;
-background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.12);border-radius:7px;">
-<div style="font-size:.55rem;color:#3d5470;text-transform:uppercase;letter-spacing:1px;">Logged in as</div>
-<div style="font-family:Rajdhani;font-size:.88rem;font-weight:600;color:#e8edf5;
-overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{user.get("full_name") or user.get("username","")}</div>
-<div style="margin-top:2px;">
-<span style="font-size:.6rem;color:{_rc};font-weight:700;text-transform:uppercase;
-border:1px solid {_rc}44;border-radius:3px;padding:1px 5px;">{_rl}</span>
-<span style="font-size:.58rem;color:#3d5470;margin-left:.35rem;">{_rd}</span>
-</div></div>''', unsafe_allow_html=True)
-
-        p = st.session_state.page
-        for pid,label in MENU:
-            if pid is None:
-                st.markdown(f'''<div style="font-size:.58rem;color:#2a3f55;
-letter-spacing:2px;text-transform:uppercase;padding:.3rem .2rem .1rem;font-family:Rajdhani;">{label}</div>''', unsafe_allow_html=True)
-                continue
-            if pid in ["users","settings"] and not is_admin(): continue
-            if st.button(label, key=f"nav_{pid}", use_container_width=True,
-                         type="primary" if p==pid else "secondary"):
-                st.session_state.page=pid; st.rerun()
-
-    st.markdown("---")
-    if st.button("Logout", use_container_width=True): logout()
-
-
-render_header()
-
-# ── Top Navigation — 3 Dropdown Menu ──────────────────────
-p_cur = st.session_state.get('page', 'home')
 
 MENU_GROUPS = {
     "Evaluasi": [
-        ("Dashboard",           "home"),
-        ("ISO 9001",            "iso9001"),
-        ("IATF 16949",          "iatf"),
-        ("Engineering Lifecycle","lifecycle"),
-        ("Konsistensi Mutu",    "consistency"),
-        ("Evaluasi Batch",      "batch"),
+        ("Dashboard Utama",        "home"),
+        ("ISO 9001",               "iso9001"),
+        ("IATF 16949",             "iatf"),
+        ("Engineering Lifecycle",  "lifecycle"),
+        ("Konsistensi Mutu",       "consistency"),
+        ("Evaluasi Batch",         "batch"),
     ],
     "Analisis": [
-        ("Integrated Quality Score", "iqscore"),
-        ("Analisis Mutu MAUNG MV3",  "maung"),
-        ("Simulasi What-If",         "whatif"),
-        ("Kesimpulan & Hipotesis",   "hipotesis"),
-        ("Data Wawancara",           "interview"),
+        ("Integrated Quality Score","iqscore"),
+        ("Analisis Mutu MAUNG MV3", "maung"),
+        ("Simulasi What-If",        "whatif"),
+        ("Kesimpulan & Hipotesis",  "hipotesis"),
+        ("Data Wawancara",          "interview"),
     ],
     "Platform": [
-        ("About Platform",       "about"),
-        ("Teori & Referensi",    "theory"),
-        ("Manajemen User",       "users"),
-        ("Pengaturan Platform",  "settings"),
+        ("About Platform",          "about"),
+        ("Teori & Referensi",       "theory"),
+        ("Manajemen User",          "users"),
+        ("Pengaturan Platform",     "settings"),
     ],
 }
 
-# Determine active group
-def get_active_group(pid):
+def _active_group(pid):
     for grp, items in MENU_GROUPS.items():
         if any(p == pid for _, p in items):
             return grp
-    return None
+    return "Evaluasi"
 
-active_grp = get_active_group(p_cur)
-active_page_label = next(
-    (lbl for grp in MENU_GROUPS.values() for lbl, pid in grp if pid == p_cur),
-    p_cur.title()
-)
+active_grp = _active_group(p_cur)
 
+# CSS: hide ALL st.radio/selectbox default styling
 st.markdown(f"""
 <style>
-/* Dropdown navbar */
-div[data-testid="stRadio"]>label{{display:none!important;}}
-div[data-testid="stRadio"]>div{{
-    display:flex!important;flex-direction:row!important;
-    flex-wrap:nowrap!important;gap:0!important;
-    background:#0d1117!important;border:none!important;
-    overflow-x:auto!important;padding:0!important;
-    border-bottom:1px solid #21262d;
-    position:fixed!important;top:0!important;left:0!important;right:0!important;
-    z-index:500;
+/* Dropdown navbar wrapper */
+.iqle-nav {{
+    position:fixed; top:0; left:0; right:0; z-index:500;
+    background:#0d1117; border-bottom:1px solid #21262d;
+    display:flex; align-items:center; height:46px;
+    padding:0; overflow:hidden;
 }}
-div[data-testid="stRadio"]>div>label{{
-    display:flex!important;align-items:center!important;
-    padding:0 1.1rem!important;height:46px!important;
-    cursor:pointer!important;white-space:nowrap!important;
-    font-family:Inter,sans-serif!important;font-size:.8rem!important;
-    font-weight:500!important;color:#8b949e!important;
-    background:transparent!important;border:none!important;border-radius:0!important;
-    border-bottom:2px solid transparent!important;
-    margin:0!important;flex-shrink:0!important;
-    transition:color .15s,border-color .15s!important;
+.iqle-nav-brand {{
+    font-family:Rajdhani,sans-serif; font-size:.9rem; font-weight:700;
+    color:{accent}; letter-spacing:2px; padding:0 1.25rem;
+    border-right:1px solid #21262d; height:100%;
+    display:flex; align-items:center; flex-shrink:0; white-space:nowrap;
 }}
-div[data-testid="stRadio"]>div>label:hover{{
-    color:#e6edf3!important;border-bottom-color:#484f58!important;
-    background:rgba(255,255,255,.04)!important;
+/* Group tabs */
+.iqle-nav-tabs {{
+    display:flex; align-items:stretch; height:100%; gap:0;
 }}
-div[data-testid="stRadio"]>div>label:has(input:checked){{
-    color:{accent}!important;font-weight:700!important;
-    border-bottom-color:{accent}!important;
+.iqle-nav-tab {{
+    display:flex; align-items:center; padding:0 1rem; cursor:pointer;
+    font-family:Inter,sans-serif; font-size:.78rem; font-weight:500;
+    color:#8b949e; border-bottom:2px solid transparent;
+    border-right:1px solid #21262d; white-space:nowrap;
+    transition:color .15s, border-color .15s;
+    text-decoration:none; height:100%;
 }}
-div[data-testid="stRadio"]>div>label>div:first-child{{display:none!important;}}
-.nav-brand{{
-    font-family:Rajdhani,sans-serif;font-size:.9rem;font-weight:700;
-    color:{accent};letter-spacing:2px;padding:0 1.25rem;
-    border-right:1px solid #21262d;
-    display:flex;align-items:center;height:46px;
-    background:#0d1117;flex-shrink:0;white-space:nowrap;
+.iqle-nav-tab:hover {{ color:#e6edf3; border-bottom-color:#484f58; background:rgba(255,255,255,.04); }}
+.iqle-nav-tab.active {{ color:{accent}; font-weight:700; border-bottom-color:{accent}; }}
+/* Submenu bar */
+.iqle-subnav {{
+    position:fixed; top:46px; left:0; right:0; z-index:499;
+    background:#161b22; border-bottom:1px solid #21262d;
+    display:flex; align-items:center; gap:0; padding:0 1rem;
+    height:38px; overflow-x:auto; white-space:nowrap;
 }}
-/* Current page indicator under navbar */
-.page-breadcrumb{{
-    font-size:.68rem;color:#4a6fa5;padding:.3rem 1.5rem;
-    background:#0d1117;border-bottom:1px solid #21262d;
-    font-family:Inter,sans-serif;letter-spacing:.5px;
-    margin-top:46px;
+.iqle-subnav a {{
+    font-family:Inter,sans-serif; font-size:.74rem; font-weight:500;
+    color:#6e7681; text-decoration:none; padding:0 .85rem; height:38px;
+    display:inline-flex; align-items:center;
+    border-bottom:2px solid transparent;
+    transition:color .15s, border-color .15s; flex-shrink:0;
 }}
-.page-breadcrumb span{{color:#7a9bb5;}}
-@media(max-width:768px){{
-    div[data-testid="stRadio"]>div>label{{
-        padding:0 .7rem!important;font-size:.72rem!important;height:42px!important;
-    }}
-    .nav-brand{{padding:0 .75rem;height:42px;}}
+.iqle-subnav a:hover {{ color:#e6edf3; border-bottom-color:#484f58; }}
+.iqle-subnav a.active {{ color:#e6edf3; font-weight:600; border-bottom-color:{accent}; }}
+/* Push content below both navbars */
+.stMainBlockContainer, .block-container {{
+    padding-top:88px !important;
+    max-width:100% !important;
+    padding-left:1.5rem !important;
+    padding-right:1.5rem !important;
+}}
+@media(max-width:768px) {{
+    .iqle-nav-tab {{ padding:0 .65rem; font-size:.72rem; }}
+    .iqle-nav-brand {{ padding:0 .75rem; font-size:.78rem; letter-spacing:1px; }}
+    .iqle-subnav a {{ padding:0 .55rem; font-size:.68rem; }}
+    .stMainBlockContainer, .block-container {{ padding-left:.5rem!important; padding-right:.5rem!important; }}
 }}
 </style>
 """, unsafe_allow_html=True)
 
-# Navbar: 3 group selectbox as radio
-groups = list(MENU_GROUPS.keys())
-cur_grp_idx = groups.index(active_grp) if active_grp else 0
+# Build top navbar HTML
+tabs_html = ""
+for grp in MENU_GROUPS:
+    is_act = "active" if grp == active_grp else ""
+    tabs_html += f'<span class="iqle-nav-tab {is_act}" id="grp-{grp}">{grp}</span>'
 
-col_brand, col_nav = st.columns([0.1, 0.9])
-with col_brand:
-    st.markdown('<div class="nav-brand">⚙ IQLE</div>', unsafe_allow_html=True)
-with col_nav:
-    chosen_grp = st.radio("grp", groups, index=cur_grp_idx,
-                          horizontal=True, key="topnav_grp",
-                          label_visibility="collapsed")
-
-# Breadcrumb + sub-menu for chosen group
 st.markdown(
-    f'<div class="page-breadcrumb">'
-    f'{chosen_grp} &nbsp;›&nbsp; <span>{active_page_label}</span>'
+    f'<div class="iqle-nav">'
+    f'<div class="iqle-nav-brand">⚙ IQLE</div>'
+    f'<div class="iqle-nav-tabs">{tabs_html}</div>'
     f'</div>',
     unsafe_allow_html=True
 )
 
-# Sub-menu as selectbox
-sub_items  = MENU_GROUPS[chosen_grp]
-sub_labels = [lbl for lbl, _ in sub_items]
-sub_pids   = [pid for _, pid in sub_items]
-cur_sub    = sub_pids.index(p_cur) if p_cur in sub_pids else 0
+# Build submenu HTML
+sub_html = ""
+for lbl, pid in MENU_GROUPS[active_grp]:
+    is_act = "active" if pid == p_cur else ""
+    sub_html += f'<a class="{is_act}" data-pid="{pid}">{lbl}</a>'
 
-# If switched to different group, auto-navigate to first item
-if active_grp != chosen_grp:
-    cur_sub = 0
+st.markdown(f'<div class="iqle-subnav">{sub_html}</div>', unsafe_allow_html=True)
 
-chosen_sub = st.selectbox(
-    "page", sub_labels, index=cur_sub,
-    key="topnav_sub", label_visibility="collapsed"
-)
-chosen_pid = sub_pids[sub_labels.index(chosen_sub)]
-if chosen_pid != p_cur:
-    st.session_state.page = chosen_pid
+# Actual navigation: selectbox hidden via CSS but functional
+# Group selector
+_grp_list = list(MENU_GROUPS.keys())
+_grp_idx  = _grp_list.index(active_grp)
+
+st.markdown("""<style>
+div[data-testid="stSelectbox"]:has(> label[data-nav="grp"]) {
+    position:fixed; top:0; left:120px; right:0; z-index:501;
+    height:46px; background:transparent;
+}
+div[data-testid="stSelectbox"]:has(> label[data-nav="grp"]) > div {
+    height:46px; background:transparent; border:none;
+}
+</style>""", unsafe_allow_html=True)
+
+_chosen_grp = st.selectbox("grp", _grp_list, index=_grp_idx,
+                            key="nav_grp", label_visibility="collapsed")
+if _chosen_grp != active_grp:
+    # Navigate to first page of new group
+    first_pid = MENU_GROUPS[_chosen_grp][0][1]
+    st.session_state.page = first_pid
+    st.rerun()
+
+# Sub-page selector
+_sub_items  = MENU_GROUPS[active_grp]
+_sub_labels = [l for l,_ in _sub_items]
+_sub_pids   = [p for _,p in _sub_items]
+_sub_idx    = _sub_pids.index(p_cur) if p_cur in _sub_pids else 0
+
+_chosen_sub = st.selectbox("page", _sub_labels, index=_sub_idx,
+                            key="nav_sub", label_visibility="collapsed")
+_chosen_pid = _sub_pids[_sub_labels.index(_chosen_sub)]
+if _chosen_pid != p_cur:
+    st.session_state.page = _chosen_pid
     st.rerun()
 
 
-render_header()
-
-# ── Top Navigation ──────────────────────────────────────────
-p_cur = st.session_state.get('page', 'home')
-NAV_ITEMS = [
-    ("Dashboard",   "home"),
-    ("ISO 9001",    "iso9001"),
-    ("IATF 16949",  "iatf"),
-    ("Lifecycle",   "lifecycle"),
-    ("Konsistensi", "consistency"),
-    ("Batch",       "batch"),
-    ("IQ Score",    "iqscore"),
-    ("MAUNG MV3",   "maung"),
-    ("What-If",     "whatif"),
-    ("Hipotesis",   "hipotesis"),
-    ("Wawancara",   "interview"),
-    ("About",       "about"),
-]
-if is_admin():
-    NAV_ITEMS += [("Users","users"),("Settings","settings")]
-
-labels  = [n for n,_ in NAV_ITEMS]
-pids    = [p for _,p in NAV_ITEMS]
-cur_idx = pids.index(p_cur) if p_cur in pids else 0
-
-chosen = st.radio("nav", labels, index=cur_idx, horizontal=True,
-                  key="topnav", label_visibility="collapsed")
-chosen_pid = pids[labels.index(chosen)]
-if chosen_pid != p_cur:
-    st.session_state.page = chosen_pid
-    st.rerun()
-
-# Mobile hamburger button (inside Streamlit, position fixed via CSS)
-st.markdown(f"""
-<style>
-.hbg-wrap{{position:fixed;top:4px;right:8px;z-index:9999;}}
-@media(min-width:769px){{.hbg-wrap{{display:none!important;}}}}
-.hbg-wrap button{{
-    background:{accent}!important;color:#000!important;
-    border:none!important;border-radius:6px!important;
-    width:36px!important;height:36px!important;
-    font-size:1.1rem!important;font-weight:700!important;
-    cursor:pointer!important;padding:0!important;
-    box-shadow:0 2px 12px rgba(0,212,255,.4)!important;
-}}
-</style>
-<div class="hbg-wrap">
-  <button onclick="toggleSidebar()">&#9776;</button>
-</div>
-""", unsafe_allow_html=True)
 
 p = st.session_state.page
 if   p=="home":        from modules.pg_home        import show
