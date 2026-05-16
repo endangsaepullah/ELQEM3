@@ -33,65 +33,107 @@ role = st.session_state.get('role', 'viewer')
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
-# Global CSS + hamburger
+# Global CSS
 st.markdown(f"""
 <style>
 .stMainBlockContainer,.block-container{{max-width:100%!important;padding:0 1.5rem!important;}}
+.stMainBlockContainer{{padding-top:50px!important;}}
 [data-testid="stSidebarCollapsedControl"]{{display:none!important;}}
 header[data-testid="stHeader"]{{display:none!important;}}
-
-/* Hamburger */
-.hbg{{display:none;position:fixed;top:10px;right:12px;z-index:9999;
-    background:{accent};color:#000;border:none;border-radius:5px;
-    width:36px;height:36px;cursor:pointer;font-size:1.1rem;font-weight:700;
-    box-shadow:0 2px 12px rgba(0,212,255,.35);align-items:center;justify-content:center;}}
-.sbo{{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);
-    z-index:998;backdrop-filter:blur(2px);}}
-
-/* GitHub navbar */
-.ghnav{{
-    background:#0d1117;border-bottom:1px solid #21262d;
-    display:flex;align-items:stretch;gap:0;
-    overflow-x:auto;white-space:nowrap;
-    position:sticky;top:0;z-index:200;
-    -webkit-overflow-scrolling:touch;
+/* Radio nav styling */
+div[data-testid="stRadio"]>label{{display:none!important;}}
+div[data-testid="stRadio"]>div{{
+    display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+    gap:0!important;background:#0d1117!important;border:none!important;
+    overflow-x:auto!important;padding:0!important;
+    border-bottom:1px solid #21262d;
 }}
-.ghnav-brand{{
-    display:flex;align-items:center;padding:0 1.25rem 0 1rem;
+div[data-testid="stRadio"]>div>label{{
+    display:flex!important;align-items:center!important;
+    padding:0 .85rem!important;height:46px!important;
+    cursor:pointer!important;white-space:nowrap!important;
+    font-family:Inter,sans-serif!important;font-size:.77rem!important;
+    font-weight:500!important;color:#8b949e!important;
+    background:transparent!important;border:none!important;border-radius:0!important;
+    border-bottom:2px solid transparent!important;
+    margin:0!important;flex-shrink:0!important;
+    transition:color .15s,border-color .15s!important;
+}}
+div[data-testid="stRadio"]>div>label:hover{{
+    color:#e6edf3!important;border-bottom-color:#484f58!important;
+    background:rgba(255,255,255,0.04)!important;
+}}
+div[data-testid="stRadio"]>div>label:has(input:checked){{
+    color:#e6edf3!important;font-weight:600!important;
+    border-bottom-color:{accent}!important;
+}}
+div[data-testid="stRadio"]>div>label>div:first-child{{display:none!important;}}
+.nav-brand{{
     font-family:Rajdhani,sans-serif;font-size:.9rem;font-weight:700;
-    color:{accent};letter-spacing:2px;flex-shrink:0;
+    color:{accent};letter-spacing:2px;padding:0 1rem;
     border-right:1px solid #21262d;
+    display:flex;align-items:center;height:46px;
+    background:#0d1117;flex-shrink:0;white-space:nowrap;
 }}
-.ghnav a{{
-    display:inline-flex;align-items:center;gap:.35rem;
-    padding:0 .85rem;height:48px;flex-shrink:0;
-    font-family:Inter,sans-serif;font-size:.78rem;font-weight:500;
-    color:#8b949e;text-decoration:none!important;
-    border-bottom:2px solid transparent;
-    transition:color .15s,border-color .15s;
-}}
-.ghnav a:hover{{color:#e6edf3;border-bottom-color:#484f58;}}
-.ghnav a.act{{color:#e6edf3;font-weight:600;border-bottom-color:{accent};}}
-.ghnav-ico{{font-size:.85rem;}}
-
-/* Sidebar mobile */
 @media(max-width:768px){{
-    .hbg{{display:flex!important;}}
     [data-testid="stSidebar"]{{
         position:fixed!important;z-index:999!important;
-        transform:translateX(-110%)!important;transition:transform .25s!important;
+        transition:transform .25s!important;
         height:100vh!important;top:0!important;left:0!important;
         min-width:260px!important;max-width:260px!important;
         box-shadow:4px 0 24px rgba(0,0,0,.6)!important;
     }}
-    [data-testid="stSidebar"].sbo-open{{transform:translateX(0)!important;}}
-    .sbo.sbo-open{{display:block;}}
-    .stMainBlockContainer,.block-container{{padding:.5rem!important;}}
-    .ghnav a{{padding:0 .6rem;font-size:.72rem;}}
+    div[data-testid="stRadio"]>div>label{{
+        padding:0 .55rem!important;font-size:.68rem!important;height:40px!important;
+    }}
+    .nav-brand{{padding:0 .6rem;font-size:.78rem;height:40px;}}
+    .stMainBlockContainer,.block-container{{padding:.4rem!important;}}
 }}
 </style>
-<button class="hbg" onclick="document.querySelector('[data-testid=stSidebar]').classList.toggle('sbo-open');document.getElementById('sbo').classList.toggle('sbo-open')">&#9776;</button>
-<div class="sbo" id="sbo" onclick="document.querySelector('[data-testid=stSidebar]').classList.remove('sbo-open');document.getElementById('sbo').classList.remove('sbo-open')"></div>
+""", unsafe_allow_html=True)
+
+# Mobile sidebar toggle via session state
+if 'mob_sb' not in st.session_state:
+    st.session_state.mob_sb = False
+
+# Mobile toggle button (top-right)
+st.markdown(f"""
+<style>
+.mob-tog {{
+    display:none;
+    position:fixed;top:8px;right:10px;z-index:9999;
+    background:{accent};color:#000;border:none;border-radius:6px;
+    width:36px;height:36px;font-size:1.1rem;font-weight:700;
+    cursor:pointer;align-items:center;justify-content:center;
+    box-shadow:0 2px 12px rgba(0,212,255,.4);
+}}
+@media(max-width:768px){{.mob-tog{{display:flex!important;}}}}
+</style>
+""", unsafe_allow_html=True)
+
+# Streamlit button for mobile (renders above everything)
+mob_col, _ = st.columns([1, 10])
+with mob_col:
+    st.markdown('<div style="position:fixed;top:8px;right:10px;z-index:9999;">', unsafe_allow_html=True)
+    if st.button("☰", key="mob_sb_btn", help="Toggle menu"):
+        st.session_state.mob_sb = not st.session_state.mob_sb
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# Sidebar width based on mobile toggle
+sb_w = 255 if st.session_state.get('sb_wide', True) else 72
+mob_transform = "translateX(0)" if st.session_state.mob_sb else "translateX(-110%)"
+st.markdown(f"""
+<style>
+@media(max-width:768px){{
+    [data-testid="stSidebar"]{{
+        transform:{mob_transform}!important;
+    }}
+}}
+section[data-testid="stSidebar"]>div{{
+    min-width:{sb_w}px!important;max-width:{sb_w}px!important;
+}}
+</style>
 """, unsafe_allow_html=True)
 
 # Sidebar
@@ -99,16 +141,16 @@ with st.sidebar:
     if 'sb_wide' not in st.session_state:
         st.session_state.sb_wide = True
     wide = st.session_state.sb_wide
-    sb_w = 255 if wide else 72
-    st.markdown(f'<style>section[data-testid="stSidebar"]>div{{min-width:{sb_w}px!important;max-width:{sb_w}px!important;}}</style>', unsafe_allow_html=True)
+    sb_w2 = 255 if wide else 72
+    st.markdown(f'<style>section[data-testid="stSidebar"]>div{{min-width:{sb_w2}px!important;max-width:{sb_w2}px!important;}}</style>', unsafe_allow_html=True)
 
-    c1, c2 = st.columns([1,3])
-    with c1:
+    tc1, tc2 = st.columns([1,3])
+    with tc1:
         if st.button("◀" if wide else "▶", key="sb_tog"):
             st.session_state.sb_wide = not wide; st.rerun()
-    with c2:
+    with tc2:
         if wide:
-            st.markdown('<span style="font-size:.6rem;color:#3d5470;letter-spacing:1px;">CIUTKAN</span>', unsafe_allow_html=True)
+            st.markdown(f'<span style="font-size:.6rem;color:#3d5470;">CIUTKAN</span>', unsafe_allow_html=True)
 
     st.markdown('<div style="border-bottom:1px solid rgba(0,212,255,0.1);margin:.4rem 0;"></div>', unsafe_allow_html=True)
 
@@ -124,36 +166,44 @@ with st.sidebar:
     ]
 
     if not wide:
-        ICONS={"home":"⌂","iso9001":"①","iatf":"②","lifecycle":"③","consistency":"④","batch":"⑤","iqscore":"⑥","maung":"⑦","whatif":"⑧","hipotesis":"⑨","interview":"⑩","about":"◉","theory":"◎","users":"◈","settings":"◇"}
+        ICONS={"home":"⌂","iso9001":"①","iatf":"②","lifecycle":"③","consistency":"④",
+               "batch":"⑤","iqscore":"⑥","maung":"⑦","whatif":"⑧","hipotesis":"⑨",
+               "interview":"⑩","about":"◉","theory":"◎","users":"◈","settings":"◇"}
         for pid,label in [(p,l) for p,l in MENU if p]:
             if pid in ["users","settings"] and not is_admin(): continue
-            if st.button(ICONS.get(pid,"·"), key=f"sbc_{pid}", use_container_width=True, help=label, type="primary" if st.session_state.page==pid else "secondary"):
+            if st.button(ICONS.get(pid,"·"), key=f"sbc_{pid}",
+                         use_container_width=True, help=label,
+                         type="primary" if st.session_state.page==pid else "secondary"):
                 st.session_state.page=pid; st.rerun()
     else:
-        st.markdown(f'<div style="padding:.4rem 0 .6rem;text-align:center;"><div style="font-family:Rajdhani;font-size:1rem;font-weight:700;color:{accent};letter-spacing:2px;">IQLE PLATFORM</div><div style="font-size:.58rem;color:#3d5470;letter-spacing:2px;text-transform:uppercase;">PT Pindad</div></div>', unsafe_allow_html=True)
+        st.markdown(f'''<div style="padding:.4rem 0 .6rem;text-align:center;">
+<div style="font-family:Rajdhani;font-size:1rem;font-weight:700;color:{accent};letter-spacing:2px;">IQLE PLATFORM</div>
+<div style="font-size:.58rem;color:#3d5470;letter-spacing:2px;text-transform:uppercase;">PT Pindad</div>
+</div>''', unsafe_allow_html=True)
+
         _rc = "#00d4ff" if role=="admin" else "#ffd700"
         _rl = "ADMIN" if role=="admin" else "VIEWER"
-        _rd = "Akses penuh: input, edit & pengaturan" if role=="admin" else "Akses baca semua modul"
+        _rd = "Akses penuh: input, edit & setting" if role=="admin" else "Akses baca semua modul"
         st.markdown(f'''<div style="padding:.4rem .7rem;margin-bottom:.5rem;
-            background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.12);border-radius:7px;">
-            <div style="font-size:.55rem;color:#3d5470;text-transform:uppercase;letter-spacing:1px;">
-            Logged in as</div>
-            <div style="font-family:Rajdhani;font-size:.88rem;font-weight:600;color:#e8edf5;
-            overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-            {user.get("full_name") or user.get("username","")}</div>
-            <div style="display:flex;align-items:center;gap:.4rem;margin-top:2px;">
-            <span style="font-size:.6rem;color:{_rc};font-weight:700;text-transform:uppercase;
-            border:1px solid {_rc}44;border-radius:3px;padding:1px 5px;">{_rl}</span>
-            <span style="font-size:.58rem;color:#3d5470;">{_rd}</span>
-            </div></div>''', unsafe_allow_html=True)
+background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.12);border-radius:7px;">
+<div style="font-size:.55rem;color:#3d5470;text-transform:uppercase;letter-spacing:1px;">Logged in as</div>
+<div style="font-family:Rajdhani;font-size:.88rem;font-weight:600;color:#e8edf5;
+overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{user.get("full_name") or user.get("username","")}</div>
+<div style="margin-top:2px;">
+<span style="font-size:.6rem;color:{_rc};font-weight:700;text-transform:uppercase;
+border:1px solid {_rc}44;border-radius:3px;padding:1px 5px;">{_rl}</span>
+<span style="font-size:.58rem;color:#3d5470;margin-left:.35rem;">{_rd}</span>
+</div></div>''', unsafe_allow_html=True)
 
         p = st.session_state.page
         for pid,label in MENU:
             if pid is None:
-                st.markdown(f'<div style="font-size:.58rem;color:#2a3f55;letter-spacing:2px;text-transform:uppercase;padding:.3rem .2rem .1rem;font-family:Rajdhani;">{label}</div>', unsafe_allow_html=True)
+                st.markdown(f'''<div style="font-size:.58rem;color:#2a3f55;
+letter-spacing:2px;text-transform:uppercase;padding:.3rem .2rem .1rem;font-family:Rajdhani;">{label}</div>''', unsafe_allow_html=True)
                 continue
             if pid in ["users","settings"] and not is_admin(): continue
-            if st.button(label, key=f"nav_{pid}", use_container_width=True, type="primary" if p==pid else "secondary"):
+            if st.button(label, key=f"nav_{pid}", use_container_width=True,
+                         type="primary" if p==pid else "secondary"):
                 st.session_state.page=pid; st.rerun()
 
     st.markdown("---")
@@ -202,7 +252,7 @@ div[data-testid="stRadio"] > div {{
     background:#0d1117 !important; border:none !important;
     overflow-x:auto !important; padding:0 !important;
     border-bottom:1px solid #21262d;
-    position:sticky; top:0; z-index:200;
+    position:fixed!important; top:0!important; left:0!important; right:0!important; z-index:200;
 }}
 div[data-testid="stRadio"] > div > label {{
     display:flex !important; align-items:center !important;
