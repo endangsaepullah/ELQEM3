@@ -125,7 +125,21 @@ with st.sidebar:
                 st.session_state.page=pid; st.rerun()
     else:
         st.markdown(f'<div style="padding:.4rem 0 .6rem;text-align:center;"><div style="font-family:Rajdhani;font-size:1rem;font-weight:700;color:{accent};letter-spacing:2px;">IQLE PLATFORM</div><div style="font-size:.58rem;color:#3d5470;letter-spacing:2px;text-transform:uppercase;">PT Pindad</div></div>', unsafe_allow_html=True)
-        st.markdown(f'<div style="padding:.4rem .7rem;margin-bottom:.5rem;background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.12);border-radius:7px;"><div style="font-size:.58rem;color:#3d5470;text-transform:uppercase;letter-spacing:1px;">Logged in as</div><div style="font-family:Rajdhani;font-size:.88rem;font-weight:600;color:#e8edf5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{user.get("full_name") or user.get("username","")}</div><div style="font-size:.6rem;color:{"#00d4ff" if role=="admin" else "#ffd700"};text-transform:uppercase;">{"ADMIN" if role=="admin" else "VIEWER"}</div></div>', unsafe_allow_html=True)
+        _rc = "#00d4ff" if role=="admin" else "#ffd700"
+        _rl = "ADMIN" if role=="admin" else "VIEWER"
+        _rd = "Akses penuh: input, edit & pengaturan" if role=="admin" else "Akses baca semua modul"
+        st.markdown(f'''<div style="padding:.4rem .7rem;margin-bottom:.5rem;
+            background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.12);border-radius:7px;">
+            <div style="font-size:.55rem;color:#3d5470;text-transform:uppercase;letter-spacing:1px;">
+            Logged in as</div>
+            <div style="font-family:Rajdhani;font-size:.88rem;font-weight:600;color:#e8edf5;
+            overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+            {user.get("full_name") or user.get("username","")}</div>
+            <div style="display:flex;align-items:center;gap:.4rem;margin-top:2px;">
+            <span style="font-size:.6rem;color:{_rc};font-weight:700;text-transform:uppercase;
+            border:1px solid {_rc}44;border-radius:3px;padding:1px 5px;">{_rl}</span>
+            <span style="font-size:.58rem;color:#3d5470;">{_rd}</span>
+            </div></div>''', unsafe_allow_html=True)
 
         p = st.session_state.page
         for pid,label in MENU:
@@ -154,55 +168,21 @@ NAV = [
     ("Hipotesis",    "hipotesis"),
     ("Wawancara",    "interview"),
     ("About",        "about"),
+    ("Users",        "users"),
+    ("Settings",     "settings"),
 ]
 
-# GitHub navbar brand
-st.markdown(
-    f'<div class="gh-navbar"><span class="gh-navbar-brand">⚙ IQLE PLATFORM</span></div>',
-    unsafe_allow_html=True
-)
+# GitHub navbar brand bar
+st.markdown(f'<div class="gh-navbar"><span class="gh-brand">⚙ IQLE PLATFORM</span></div>', unsafe_allow_html=True)
 
-# Nav buttons styled as GitHub tabs
-st.markdown("""
-<style>
-/* Hide default button styling for nav row */
-div[data-testid="stHorizontalBlock"]:has(> div > div > div > button[data-gh-nav]) > div {
-    padding: 0 !important;
-}
-button[data-gh-nav] {
-    background: transparent !important;
-    border: none !important;
-    border-bottom: 2px solid transparent !important;
-    border-radius: 0 !important;
-    color: #8b949e !important;
-    font-family: Inter, sans-serif !important;
-    font-size: .78rem !important;
-    font-weight: 500 !important;
-    padding: 0 .6rem !important;
-    height: 44px !important;
-    letter-spacing: .3px !important;
-    box-shadow: none !important;
-    transition: color .15s, border-color .15s !important;
-    white-space: nowrap !important;
-}
-button[data-gh-nav]:hover {
-    color: #e6edf3 !important;
-    border-bottom-color: #484f58 !important;
-}
-button[data-gh-nav].gh-active {
-    color: #e6edf3 !important;
-    font-weight: 600 !important;
-    border-bottom-color: #00d4ff !important;
-}
-</style>
-""", unsafe_allow_html=True)
+# Filter nav by role
+visible_nav = [(n,p) for n,p in NAV if p not in ["users","settings"] or is_admin()]
 
-nav_cols = st.columns(len(NAV))
-for i, (name, pid) in enumerate(NAV):
+nav_cols = st.columns(len(visible_nav))
+for i, (name, pid) in enumerate(visible_nav):
     with nav_cols[i]:
         active = p_cur == pid
-        label = f"**{name}**" if active else name
-        if st.button(label, key=f"gnav_{pid}", use_container_width=True,
+        if st.button(name, key=f"gnav_{pid}", use_container_width=True,
                      type="primary" if active else "secondary"):
             st.session_state.page = pid
             st.rerun()
