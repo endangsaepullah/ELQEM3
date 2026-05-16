@@ -14,173 +14,107 @@ def apply_global_style():
         --accent:{accent}; --bg:{bg}; --bg2:{bg2}; --bg3:#111827;
         --text:#e8edf5; --muted:#7a9bb5; --dim:#3d5470;
         --border:rgba(0,212,255,0.15); --border2:rgba(0,212,255,0.30);
-        --green:#00ff88; --yellow:#ffd700; --orange:#ff6b35; --red:#ff3366; --purple:#a78bfa;
+        --green:#00ff88; --yellow:#ffd700; --red:#ff3366;
     }}
     html,.stApp {{ background:var(--bg) !important; font-family:'Inter',sans-serif; color:var(--text); }}
     header[data-testid="stHeader"] {{ display:none !important; }}
     .stMainBlockContainer {{ padding-top:0 !important; }}
     [data-testid="stSidebar"] {{ background:var(--bg2) !important; border-right:1px solid var(--border); }}
     [data-testid="stSidebarCollapsedControl"] {{ display:none !important; }}
-    section[data-testid="stSidebar"] > div {{ min-width:var(--sidebar-width,235px) !important; max-width:var(--sidebar-width,235px) !important; transition: min-width 0.3s, max-width 0.3s; }}
+    section[data-testid="stSidebar"]>div {{ min-width:var(--sb-w,255px) !important; max-width:var(--sb-w,255px) !important; transition:.25s; }}
     h1,h2,h3,h4 {{ font-family:'Rajdhani',sans-serif !important; letter-spacing:1px; color:var(--text) !important; }}
-    [data-testid="metric-container"] {{ background:var(--bg3) !important; border:1px solid var(--border) !important; border-radius:10px !important; padding:1rem !important; transition:all 0.2s; }}
-    [data-testid="metric-container"]:hover {{ border-color:var(--border2) !important; box-shadow:0 0 20px rgba(0,212,255,0.08) !important; }}
+    [data-testid="metric-container"] {{ background:var(--bg3) !important; border:1px solid var(--border) !important; border-radius:10px !important; padding:1rem !important; }}
     [data-testid="stMetricValue"] {{ font-family:'Rajdhani',sans-serif !important; font-size:1.8rem !important; }}
     .stTabs [data-baseweb="tab-list"] {{ background:var(--bg2); border-radius:8px; border:1px solid var(--border); padding:4px; gap:4px; }}
     .stTabs [data-baseweb="tab"] {{ background:transparent; color:var(--muted); font-family:'Rajdhani',sans-serif; font-weight:600; letter-spacing:1px; border-radius:6px; }}
     .stTabs [aria-selected="true"] {{ background:rgba(0,212,255,0.12) !important; color:var(--accent) !important; }}
-    .stButton > button {{ background:rgba(0,212,255,0.07); border:1px solid rgba(0,212,255,0.35); color:var(--accent); font-family:'Rajdhani',sans-serif; font-weight:600; letter-spacing:1px; border-radius:6px; transition:all 0.2s; }}
-    .stButton > button:hover {{ background:rgba(0,212,255,0.18); box-shadow:0 0 16px rgba(0,212,255,0.2); transform:translateY(-1px); }}
-    .stButton > button[kind="primary"] {{ background:linear-gradient(135deg,var(--accent),#0066ff); color:#000 !important; border:none; font-weight:700; }}
-    .stTextInput > div > div > input, .stTextArea > div > div > textarea, .stNumberInput > div > div > input, .stSelectbox > div > div {{ background:var(--bg2) !important; border:1px solid var(--border) !important; border-radius:6px !important; color:var(--text) !important; }}
+    .stButton>button {{ background:rgba(0,212,255,0.07); border:1px solid rgba(0,212,255,0.3); color:var(--accent); font-family:'Rajdhani',sans-serif; font-weight:600; letter-spacing:1px; border-radius:6px; transition:all .2s; }}
+    .stButton>button:hover {{ background:rgba(0,212,255,0.15); box-shadow:0 0 14px rgba(0,212,255,0.18); }}
+    .stButton>button[kind="primary"] {{ background:linear-gradient(135deg,var(--accent),#0066ff); color:#000 !important; border:none; font-weight:700; }}
+    .stTextInput>div>div>input,.stTextArea>div>div>textarea,.stSelectbox>div>div {{
+        background:var(--bg2) !important; border:1px solid var(--border) !important; border-radius:6px !important; color:var(--text) !important; }}
     .streamlit-expanderHeader {{ background:var(--bg3) !important; border:1px solid var(--border) !important; border-radius:8px !important; color:var(--accent) !important; font-family:'Rajdhani',sans-serif !important; font-weight:600 !important; }}
-    .stDataFrame {{ border:1px solid var(--border); border-radius:8px; }}
     hr {{ border-color:var(--border) !important; }}
-    ::-webkit-scrollbar {{ width:5px; height:5px; }}
-    ::-webkit-scrollbar-track {{ background:var(--bg); }}
-    ::-webkit-scrollbar-thumb {{ background:rgba(0,212,255,0.3); border-radius:3px; }}
+    ::-webkit-scrollbar {{ width:4px; height:4px; }}
+    ::-webkit-scrollbar-thumb {{ background:rgba(0,212,255,0.25); border-radius:2px; }}
+    @media(max-width:768px) {{
+        [data-testid="stSidebar"] {{ display:none !important; }}
+        .stMainBlockContainer {{ padding:.5rem !important; }}
+    }}
     </style>
     """, unsafe_allow_html=True)
 
 
 def render_header():
-    title  = get_setting("header_title",      "IQLE PLATFORM")
-    sub    = get_setting("header_subtitle",   "Integrated Engineering Quality Lifecycle Evaluation")
-    org    = get_setting("header_org",        "PT Pindad (Persero) · Universitas Pertahanan RI")
-    badge  = get_setting("header_show_badge", "true")
-    accent = get_setting("ui_accent_color",   "#00d4ff")
+    title  = get_setting("header_title",    "IQLE PLATFORM")
+    sub    = get_setting("header_subtitle", "Integrated Engineering Quality Lifecycle Evaluation")
+    org    = get_setting("header_org",      "PT Pindad (Persero) · Universitas Pertahanan RI")
+    badge  = get_setting("header_show_badge","true")
+    accent = get_setting("ui_accent_color", "#00d4ff")
 
     badge_html = ""
     if badge == "true":
         badge_html = (
-            '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem;">'
-            + '<span style="background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.3);'
-            + 'border-radius:4px;padding:2px 10px;font-size:.65rem;color:' + accent
-            + ';font-family:Rajdhani;font-weight:700;letter-spacing:1.5px;">QUALITY 4.0</span>'
-            + '<span style="background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);'
-            + 'border-radius:4px;padding:2px 10px;font-size:.65rem;color:#00ff88;'
-            + 'font-family:Rajdhani;font-weight:700;letter-spacing:1.5px;">ENGINEERING LIFECYCLE</span>'
-            + '<span style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);'
-            + 'border-radius:4px;padding:2px 10px;font-size:.65rem;color:#ffd700;'
-            + 'font-family:Rajdhani;font-weight:700;letter-spacing:1.5px;">PLS-SEM VALIDATED</span>'
-            + '</div>'
+            '<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem;">'
+            f'<span style="background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.3);border-radius:4px;padding:2px 10px;font-size:.62rem;color:{accent};font-family:Rajdhani;font-weight:700;letter-spacing:1.5px;">QUALITY 4.0</span>'
+            '<span style="background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);border-radius:4px;padding:2px 10px;font-size:.62rem;color:#00ff88;font-family:Rajdhani;font-weight:700;letter-spacing:1.5px;">ENGINEERING LIFECYCLE</span>'
+            '<span style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.3);border-radius:4px;padding:2px 10px;font-size:.62rem;color:#ffd700;font-family:Rajdhani;font-weight:700;letter-spacing:1.5px;">PLS-SEM VALIDATED</span>'
+            '</div>'
         )
 
-    html = (
+    st.markdown(
         '<div style="background:linear-gradient(135deg,#0d1321,#111827);'
-        'border-bottom:2px solid ' + accent + '33;'
-        'padding:1.25rem 2rem 1rem;margin-bottom:1.5rem;position:relative;overflow:hidden;">'
-        '<div style="position:absolute;left:0;top:0;bottom:0;width:4px;'
-        'background:linear-gradient(180deg,' + accent + ',#0066ff);"></div>'
+        f'border-bottom:2px solid {accent}33;padding:1.25rem 2rem 1rem;margin-bottom:.5rem;'
+        'position:relative;overflow:hidden;">'
+        f'<div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,{accent},#0066ff);"></div>'
         '<div style="padding-left:.5rem;">'
-        '<div style="font-family:Rajdhani,sans-serif;font-size:1.7rem;font-weight:700;'
-        'color:' + accent + ';letter-spacing:3px;line-height:1;margin-bottom:.15rem;">'
-        '&#9881;&#65039; ' + title + '</div>'
-        '<div style="font-size:.8rem;color:#7a9bb5;letter-spacing:2px;'
-        'text-transform:uppercase;margin-bottom:.1rem;">' + sub + '</div>'
-        '<div style="font-size:.7rem;color:#4a6fa5;letter-spacing:1px;">' + org + '</div>'
+        f'<div style="font-family:Rajdhani,sans-serif;font-size:1.7rem;font-weight:700;color:{accent};letter-spacing:3px;line-height:1;margin-bottom:.15rem;">⚙️ {title}</div>'
+        f'<div style="font-size:.78rem;color:#7a9bb5;letter-spacing:2px;text-transform:uppercase;margin-bottom:.1rem;">{sub}</div>'
+        f'<div style="font-size:.68rem;color:#4a6fa5;letter-spacing:1px;">{org}</div>'
         + badge_html +
-        '</div></div>'
+        '</div></div>',
+        unsafe_allow_html=True
     )
-    st.markdown(html, unsafe_allow_html=True)
 
 
 def render_footer():
-    """Simple text footer."""
-    line1  = get_setting("footer_line1", "IQLE Platform · Prototype Akademik Magister Teknik")
-    line2  = get_setting("footer_line2", "PT Pindad (Persero) · Universitas Pertahanan RI · Quality 4.0")
+    line1  = get_setting("footer_line1", "IQLE Platform · Prototype Akademik · Magister Teknik Industri Pertahanan")
+    line2  = get_setting("footer_line2", "PT Pindad (Persero) · Universitas Pertahanan RI")
     year   = get_setting("footer_year",  "2025")
     accent = get_setting("ui_accent_color", "#00d4ff")
 
-    import streamlit as st
-
-    # Sitemap buttons in columns
-    st.markdown("<hr style='border-color:rgba(0,212,255,0.12);margin-top:2rem;'>",
-                unsafe_allow_html=True)
-
-    c1, c2, c3, c4 = st.columns(4)
-
-    with c1:
-        st.markdown(f'<p style="font-size:.62rem;color:{accent};letter-spacing:2px;'
-                    f'text-transform:uppercase;font-weight:700;margin-bottom:.3rem;">'
-                    f'Modul Evaluasi</p>', unsafe_allow_html=True)
-        for lbl, pid in [("🏠 Dashboard","home"),("📊 ISO 9001","iso9001"),
-                          ("🏭 IATF 16949","iatf"),("⚙️ Eng. Lifecycle","lifecycle"),
-                          ("✅ Konsistensi","consistency"),("📦 Evaluasi Batch","batch")]:
-            if st.button(lbl, key=f"ft_{pid}", use_container_width=True):
-                st.session_state.page = pid; st.rerun()
-
-    with c2:
-        st.markdown(f'<p style="font-size:.62rem;color:{accent};letter-spacing:2px;'
-                    f'text-transform:uppercase;font-weight:700;margin-bottom:.3rem;">'
-                    f'Analisis</p>', unsafe_allow_html=True)
-        for lbl, pid in [("🎯 IQ Score","iqscore"),("🚗 MAUNG MV3","maung"),
-                          ("🔮 Simulasi","whatif"),("🏆 Hipotesis","hipotesis"),
-                          ("💬 Wawancara","interview")]:
-            if st.button(lbl, key=f"ft_{pid}", use_container_width=True):
-                st.session_state.page = pid; st.rerun()
-
-    with c3:
-        st.markdown(f'<p style="font-size:.62rem;color:{accent};letter-spacing:2px;'
-                    f'text-transform:uppercase;font-weight:700;margin-bottom:.3rem;">'
-                    f'Platform</p>', unsafe_allow_html=True)
-        for lbl, pid in [("👤 About","about"),("📚 Teori","theory"),
-                          ("👥 Users","users"),("🔧 Settings","settings")]:
-            if st.button(lbl, key=f"ft_{pid}", use_container_width=True):
-                st.session_state.page = pid; st.rerun()
-
-    with c4:
-        st.markdown(f'<p style="font-size:.62rem;color:{accent};letter-spacing:2px;'
-                    f'text-transform:uppercase;font-weight:700;margin-bottom:.3rem;">'
-                    f'Tentang</p>', unsafe_allow_html=True)
-        st.markdown(
-            f'<div style="font-size:.72rem;color:#4a6fa5;line-height:1.9;">'
-            f'Endang Saefullah, ST, CLA<br>'
-            f'<span style="color:#3d5470;">Universitas Pertahanan RI</span><br>'
-            f'<span style="color:#3d5470;">PT Pindad (Persero)</span>'
-            f'</div>', unsafe_allow_html=True)
-
-    # Bottom copyright
     st.markdown(
-        f'<div style="text-align:center;padding:.75rem 0;margin-top:.5rem;'
-        f'font-size:.68rem;color:#2a3f55;border-top:1px solid rgba(0,212,255,0.06);">'
-        f'<span style="color:{accent};font-family:Rajdhani;font-weight:600;">{line1}</span>'
-        f' &nbsp;·&nbsp; '
-        f'<span>{line2}</span>'
-        f' &nbsp;·&nbsp; '
-        f'&copy; {year}'
+        f'<div style="margin-top:3rem;padding:.85rem 2rem;background:#070b14;'
+        f'border-top:1px solid rgba(0,212,255,0.1);text-align:center;">'
+        f'<div style="font-family:Rajdhani,sans-serif;font-size:.75rem;color:{accent};'
+        f'letter-spacing:1.5px;font-weight:600;">{line1}</div>'
+        f'<div style="font-size:.65rem;color:#2a3f55;margin-top:.2rem;letter-spacing:.5px;">'
+        f'{line2} &nbsp;·&nbsp; &copy; {year} All Rights Reserved</div>'
         f'</div>',
         unsafe_allow_html=True
     )
 
 
 def section_header(title, subtitle=None, icon=""):
-    sub = (
-        '<p style="font-size:.78rem;color:#4a6fa5;margin:0;letter-spacing:2px;'
-        'text-transform:uppercase;">' + subtitle + '</p>'
-    ) if subtitle else ""
+    sub = (f'<p style="font-size:.75rem;color:#4a6fa5;margin:0;letter-spacing:2px;text-transform:uppercase;">{subtitle}</p>') if subtitle else ""
     st.markdown(
-        '<div style="margin-bottom:1.5rem;padding-bottom:1rem;'
-        'border-bottom:1px solid rgba(0,212,255,0.12);">'
-        '<h2 style="font-family:Rajdhani,sans-serif;font-size:1.8rem;font-weight:700;'
-        'color:#e8edf5;margin:0;letter-spacing:2px;">'
-        + icon + ' ' + title.upper() + '</h2>' + sub + '</div>',
+        '<div style="margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid rgba(0,212,255,0.12);">'
+        f'<h2 style="font-family:Rajdhani,sans-serif;font-size:1.8rem;font-weight:700;color:#e8edf5;margin:0;letter-spacing:2px;">{icon} {title.upper()}</h2>'
+        + sub + '</div>',
         unsafe_allow_html=True
     )
 
 
 def score_bar(label, value, color="#00d4ff"):
     st.markdown(
-        '<div style="margin-bottom:.7rem;padding:.75rem 1rem;background:#111827;'
-        'border:1px solid ' + color + '22;border-left:3px solid ' + color + ';border-radius:8px;">'
-        '<div style="display:flex;justify-content:space-between;align-items:center;">'
-        '<span style="font-size:.8rem;color:#7a9bb5;">' + label + '</span>'
-        '<span style="font-family:Rajdhani,sans-serif;font-size:1.15rem;'
-        'font-weight:700;color:' + color + ';">' + f'{value:.1f}' + '</span>'
-        '</div>'
-        '<div style="background:#0d1321;border-radius:4px;height:5px;margin-top:6px;overflow:hidden;">'
-        '<div style="background:' + color + ';height:100%;width:' + str(value) + '%;'
-        'border-radius:4px;opacity:.85;"></div></div></div>',
+        f'<div style="margin-bottom:.7rem;padding:.75rem 1rem;background:#111827;'
+        f'border:1px solid {color}22;border-left:3px solid {color};border-radius:8px;">'
+        f'<div style="display:flex;justify-content:space-between;align-items:center;">'
+        f'<span style="font-size:.8rem;color:#7a9bb5;">{label}</span>'
+        f'<span style="font-family:Rajdhani,sans-serif;font-size:1.15rem;font-weight:700;color:{color};">{value:.1f}</span>'
+        f'</div>'
+        f'<div style="background:#0d1321;border-radius:4px;height:5px;margin-top:6px;overflow:hidden;">'
+        f'<div style="background:{color};height:100%;width:{value}%;border-radius:4px;opacity:.85;"></div></div></div>',
         unsafe_allow_html=True
     )
 
@@ -189,11 +123,9 @@ def category_banner(score, category):
     colors = {"Sangat Baik":"#00ff88","Baik":"#00d4ff","Cukup":"#ffd700","Perlu Perbaikan":"#ff3366"}
     c = colors.get(category, "#7a9bb5")
     st.markdown(
-        '<div style="padding:.85rem 1.25rem;background:' + c + '11;border:1px solid ' + c + '44;'
-        'border-radius:8px;text-align:center;margin-top:.5rem;">'
-        '<span style="font-size:.8rem;color:#7a9bb5;">Kategori: </span>'
-        '<span style="font-family:Rajdhani;font-size:1.15rem;font-weight:700;color:' + c + ';">'
-        + category + ' (' + f'{score:.1f}' + '/100)</span></div>',
+        f'<div style="padding:.85rem 1.25rem;background:{c}11;border:1px solid {c}44;border-radius:8px;text-align:center;margin-top:.5rem;">'
+        f'<span style="font-size:.8rem;color:#7a9bb5;">Kategori: </span>'
+        f'<span style="font-family:Rajdhani;font-size:1.15rem;font-weight:700;color:{c};">{category} ({score:.1f}/100)</span></div>',
         unsafe_allow_html=True
     )
 
