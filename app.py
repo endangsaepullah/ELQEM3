@@ -136,15 +136,7 @@ st.markdown(f"""
     display:flex; align-items:center; gap:0; padding:0 1rem;
     height:38px; overflow-x:auto; white-space:nowrap;
 }}
-.iqle-subnav a {{
-    font-family:Inter,sans-serif; font-size:.74rem; font-weight:500;
-    color:#6e7681; text-decoration:none; padding:0 .85rem; height:38px;
-    display:inline-flex; align-items:center;
-    border-bottom:2px solid transparent;
-    transition:color .15s, border-color .15s; flex-shrink:0;
-}}
-.iqle-subnav a:hover {{ color:#e6edf3; border-bottom-color:#484f58; }}
-.iqle-subnav a.active {{ color:#e6edf3; font-weight:600; border-bottom-color:{accent}; }}
+/* subnav items styled via .iqle-subnav-item */
 /* User info right side */
 .iqle-nav-right {{
     margin-left:auto; display:flex; align-items:center; gap:.5rem;
@@ -172,6 +164,21 @@ st.markdown(f"""
     padding-left:1rem !important;
     padding-right:1rem !important;
 }}
+/* Logout button */
+button[data-testid="baseButton-secondary"][title="Logout — keluar dari sesi"] {{
+    position:fixed !important; top:8px !important; right:8px !important;
+    z-index:9999 !important; height:30px !important; width:34px !important;
+    background:rgba(255,51,102,0.12) !important;
+    border:1px solid rgba(255,51,102,0.4) !important;
+    color:#ff3366 !important; font-size:1rem !important;
+    padding:0 !important; border-radius:6px !important;
+    box-shadow:none !important;
+}}
+/* Hide all the zero-height button wrappers from layout */
+.stMainBlockContainer > div > div > div:has(div[style*="height:0"]) {{
+    height:0 !important; overflow:hidden !important;
+    margin:0 !important; padding:0 !important;
+}}
 @media(max-width:768px) {{
     .iqle-nav-tab {{ padding:0 .65rem; font-size:.72rem; }}
     .iqle-nav-brand {{ padding:0 .75rem; font-size:.78rem; letter-spacing:1px; }}
@@ -181,95 +188,79 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# Build top navbar HTML
-tabs_html = ""
-for grp in MENU_GROUPS:
-    is_act = "active" if grp == active_grp else ""
-    tabs_html += f'<span class="iqle-nav-tab {is_act}" id="grp-{grp}">{grp}</span>'
-
-# User info + logout in navbar
-_uname = user.get('full_name') or user.get('username','')
+# Build navbar HTML - group tabs + user info + logout all in one bar
+_uname      = user.get('full_name') or user.get('username','')
 _role_color = "#00d4ff" if role=="admin" else "#ffd700"
 _role_label = "ADMIN" if role=="admin" else "VIEWER"
 
+tabs_html = ""
+for grp in MENU_GROUPS:
+    is_act = "active" if grp == active_grp else ""
+    tabs_html += f'<span class="iqle-nav-tab {is_act}" data-grp="{grp}">{grp}</span>'
+
+# Submenu as clickable spans (no selectbox needed)
+sub_html = ""
+for lbl, pid in MENU_GROUPS[active_grp]:
+    is_act = "active" if pid == p_cur else ""
+    sub_html += f'<span class="iqle-subnav-item {is_act}" data-pid="{pid}">{lbl}</span>'
+
+# Logout button inline in navbar right
 st.markdown(
     f'<div class="iqle-nav">'
     f'<div class="iqle-nav-brand">⚙ IQLE</div>'
     f'<div class="iqle-nav-tabs">{tabs_html}</div>'
     f'<div class="iqle-nav-right">'
-    f'<span class="iqle-greeting">Halo, <strong>{_uname}</strong>&nbsp;—&nbsp;'
-    f'masuk sebagai </span>'
-    f'<span class="iqle-role" style="color:{_role_color};">{_role_label}</span>'
+    f'<span class="iqle-greeting">Halo, <strong>{_uname}</strong>' 
+    f' &nbsp;<span class="iqle-role" style="color:{_role_color};">{_role_label}</span></span>'
     f'</div>'
-    f'</div>',
+    f'</div>'
+    f'<div class="iqle-subnav">{sub_html}</div>',
     unsafe_allow_html=True
 )
 
-# Logout via button styled into navbar right
-st.markdown("""
-<style>
-button[data-testid="baseButton-secondary"][kind="secondary"]:has(+ div),
-div.logout-btn-wrap button {
-    position:fixed !important; top:7px !important; right:8px !important;
-    z-index:9999 !important; height:30px !important;
-    background:rgba(255,51,102,0.1) !important;
-    border:1px solid rgba(255,51,102,0.35) !important;
-    color:#ff3366 !important; font-size:.72rem !important; font-weight:600 !important;
-    padding:0 10px !important; border-radius:5px !important;
-    font-family:Rajdhani,sans-serif !important; letter-spacing:.5px !important;
-    box-shadow:none !important; width:auto !important;
-}
-</style>
-<div class="logout-btn-wrap">
-""", unsafe_allow_html=True)
-if st.button("⏻ Logout", key="nav_logout"):
-    logout()
-st.markdown("</div>", unsafe_allow_html=True)
-
-# Build submenu HTML
-sub_html = ""
-for lbl, pid in MENU_GROUPS[active_grp]:
-    is_act = "active" if pid == p_cur else ""
-    sub_html += f'<a class="{is_act}" data-pid="{pid}">{lbl}</a>'
-
-st.markdown(f'<div class="iqle-subnav">{sub_html}</div>', unsafe_allow_html=True)
-
-# Actual navigation: selectbox hidden via CSS but functional
-# Group selector
+# Invisible st.columns for group navigation
 _grp_list = list(MENU_GROUPS.keys())
-_grp_idx  = _grp_list.index(active_grp)
+_gcols = st.columns(len(_grp_list) + 1)
+for _gi, _grp in enumerate(_grp_list):
+    with _gcols[_gi]:
+        st.markdown(f'<div style="height:0;overflow:hidden;">', unsafe_allow_html=True)
+        if st.button(_grp, key=f"grpbtn_{_grp}"):
+            st.session_state.page = MENU_GROUPS[_grp][0][1]
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+with _gcols[-1]:
+    st.markdown('<div style="height:0;overflow:hidden;">', unsafe_allow_html=True)
+    if st.button("Logout", key="nav_logout_h"):
+        logout()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown("""<style>
-div[data-testid="stSelectbox"]:has(> label[data-nav="grp"]) {
-    position:fixed; top:0; left:120px; right:0; z-index:501;
-    height:46px; background:transparent;
-}
-div[data-testid="stSelectbox"]:has(> label[data-nav="grp"]) > div {
-    height:46px; background:transparent; border:none;
-}
-</style>""", unsafe_allow_html=True)
+# Sub-menu navigation buttons
+_sub_items = MENU_GROUPS[active_grp]
+_scols = st.columns(len(_sub_items))
+for _si, (_lbl, _pid) in enumerate(_sub_items):
+    with _scols[_si]:
+        st.markdown('<div style="height:0;overflow:hidden;">', unsafe_allow_html=True)
+        if st.button(_lbl, key=f"subbtn_{_pid}"):
+            st.session_state.page = _pid
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
-_chosen_grp = st.selectbox("grp", _grp_list, index=_grp_idx,
-                            key="nav_grp", label_visibility="collapsed")
-if _chosen_grp != active_grp:
-    # Navigate to first page of new group
-    first_pid = MENU_GROUPS[_chosen_grp][0][1]
-    st.session_state.page = first_pid
-    st.rerun()
-
-# Sub-page selector
-_sub_items  = MENU_GROUPS[active_grp]
-_sub_labels = [l for l,_ in _sub_items]
-_sub_pids   = [p for _,p in _sub_items]
-_sub_idx    = _sub_pids.index(p_cur) if p_cur in _sub_pids else 0
-
-_chosen_sub = st.selectbox("page", _sub_labels, index=_sub_idx,
-                            key="nav_sub", label_visibility="collapsed")
-_chosen_pid = _sub_pids[_sub_labels.index(_chosen_sub)]
-if _chosen_pid != p_cur:
-    st.session_state.page = _chosen_pid
-    st.rerun()
-
+# Real logout button - styled
+st.markdown(f"""
+<style>
+button[key="nav_logout_h"], .logout-real {{
+    position:fixed !important; top:8px !important; right:8px !important;
+    z-index:9999 !important;
+}}
+</style>
+""", unsafe_allow_html=True)
+_lc, _ = st.columns([1,15])
+with _lc:
+    st.markdown('<div style="position:fixed;top:8px;right:8px;z-index:9999;">',
+                unsafe_allow_html=True)
+    if st.button("⏻", key="nav_logout", help="Logout — keluar dari sesi"):
+        logout()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 p = st.session_state.page
