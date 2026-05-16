@@ -42,6 +42,13 @@ header[data-testid="stHeader"] { display:none !important; }
     max-width: 100% !important;
     padding-top: 1rem !important;
 }
+/* Show sidebar collapse button */
+[data-testid="stSidebarCollapsedControl"] {
+    display: flex !important;
+}
+button[data-testid="baseButton-headerNoPadding"] {
+    display: flex !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
