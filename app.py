@@ -25,6 +25,44 @@ except Exception as e:
 
 apply_global_style()
 
+# Responsive CSS
+st.markdown('''
+<style>
+/* Mobile responsive */
+@media (max-width: 768px) {
+    [data-testid="stSidebar"] { display: none !important; }
+    .stMainBlockContainer { padding: 0 .5rem !important; }
+    .block-container { padding: 0 .5rem !important; }
+}
+/* Tablet */
+@media (max-width: 1024px) {
+    section[data-testid="stSidebar"]>div {
+        min-width: 200px !important;
+        max-width: 200px !important;
+    }
+}
+/* Top nav bar */
+.top-nav-bar {
+    display: flex; gap: .35rem; flex-wrap: wrap;
+    padding: .5rem 0; margin-bottom: .75rem;
+    border-bottom: 1px solid rgba(0,212,255,0.12);
+}
+.top-nav-bar a {
+    font-family: Rajdhani, sans-serif; font-size: .72rem;
+    font-weight: 600; letter-spacing: 1px;
+    color: #4a6fa5; text-decoration: none;
+    padding: 3px 10px; border-radius: 4px;
+    border: 1px solid rgba(0,212,255,0.1);
+    transition: all .2s;
+}
+.top-nav-bar a:hover { color: #00d4ff; border-color: rgba(0,212,255,0.4); }
+.top-nav-bar a.active {
+    color: #00d4ff; background: rgba(0,212,255,0.1);
+    border-color: rgba(0,212,255,0.4);
+}
+</style>
+''', unsafe_allow_html=True)
+
 # ── Auth gate ──────────────────────────────────────────────
 if not st.session_state.get('logged_in'):
     from modules.pg_login import show_login
@@ -179,6 +217,35 @@ with st.sidebar:
 
 # ── Render Header ──────────────────────────────────────────
 render_header()
+
+# ── Top nav bar (visible on all screen sizes) ──────────────
+p_cur = st.session_state.get('page', 'home')
+nav_items = [
+    ("🏠","home"),("📊","ISO 9001","iso9001"),("🏭","IATF","iatf"),
+    ("⚙️","Lifecycle","lifecycle"),("✅","Konsistensi","consistency"),
+    ("📦","Batch","batch"),("🎯","IQ Score","iqscore"),("🚗","MAUNG","maung"),
+    ("🔮","What-If","whatif"),("🏆","Hipotesis","hipotesis"),
+    ("💬","Wawancara","interview"),("👤","About","about"),
+]
+nav_cols = st.columns(len(nav_items))
+for i, item in enumerate(nav_items):
+    if len(item) == 2:
+        ico, pid = item; lbl = ico
+    else:
+        ico, lbl, pid = item
+    active = p_cur == pid
+    with nav_cols[i]:
+        if st.button(
+            ico, key=f"topnav_{pid}",
+            use_container_width=True,
+            type="primary" if active else "secondary",
+            help=lbl if lbl != ico else pid.upper()
+        ):
+            st.session_state.page = pid
+            st.rerun()
+
+st.markdown('<div style="border-bottom:1px solid rgba(0,212,255,0.1);margin-bottom:.75rem;"></div>',
+            unsafe_allow_html=True)
 
 # ── Page routing ───────────────────────────────────────────
 p = st.session_state.page
