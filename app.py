@@ -80,6 +80,7 @@ with st.sidebar:
         ("✅  Konsistensi Mutu",         "consistency"),
         ("📦  Evaluasi Batch",           "batch"),
         ("🎯  Integrated Quality Score", "iqscore"),
+        ("🚗  Analisis Mutu MAUNG MV3",  "maung"),
         ("💬  Data Wawancara",           "interview"),
         ("👤  About Platform",           "about"),
         ("📚  Teori & Referensi",        "theory"),
@@ -126,6 +127,7 @@ elif p == "lifecycle":   from modules.pg_lifecycle   import show
 elif p == "consistency": from modules.pg_consistency import show
 elif p == "batch":       from modules.pg_batch       import show
 elif p == "iqscore":     from modules.pg_iqscore     import show
+elif p == "maung":       from modules.pg_maung      import show
 elif p == "interview":   from modules.pg_interview   import show
 elif p == "about":       from modules.pg_about       import show
 elif p == "theory":      from modules.pg_theory      import show
