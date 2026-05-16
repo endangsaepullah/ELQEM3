@@ -145,6 +145,31 @@ st.markdown(f"""
 }}
 .iqle-subnav a:hover {{ color:#e6edf3; border-bottom-color:#484f58; }}
 .iqle-subnav a.active {{ color:#e6edf3; font-weight:600; border-bottom-color:{accent}; }}
+/* User info right side */
+.iqle-nav-right {{
+    margin-left:auto; display:flex; align-items:center; gap:.6rem;
+    padding:0 .75rem; border-left:1px solid #21262d; flex-shrink:0;
+}}
+.iqle-user {{ font-size:.72rem; color:#6e7681; white-space:nowrap; max-width:120px;
+    overflow:hidden; text-overflow:ellipsis; font-family:Inter,sans-serif; }}
+.iqle-role {{ font-size:.62rem; font-weight:700; font-family:Rajdhani,sans-serif;
+    letter-spacing:1px; border-radius:3px; padding:1px 5px;
+    border:1px solid currentColor; opacity:.8; }}
+/* Logout button */
+div[data-testid="column"]:has(button[data-testid="baseButton-secondary"][title="Logout"]) {{
+    position:fixed; top:5px; right:8px; z-index:9999; width:auto!important;
+}}
+button[title="Logout"] {{
+    background:rgba(255,51,102,0.12)!important;
+    border:1px solid rgba(255,51,102,0.4)!important;
+    color:#ff3366!important; font-size:.8rem!important;
+    width:32px!important; height:32px!important;
+    padding:0!important; border-radius:6px!important;
+    box-shadow:none!important;
+}}
+button[title="Logout"]:hover {{
+    background:rgba(255,51,102,0.25)!important;
+}}
 /* Push content below both navbars */
 .stMainBlockContainer, .block-container {{
     padding-top:88px !important;
@@ -167,13 +192,31 @@ for grp in MENU_GROUPS:
     is_act = "active" if grp == active_grp else ""
     tabs_html += f'<span class="iqle-nav-tab {is_act}" id="grp-{grp}">{grp}</span>'
 
+# User info + logout in navbar
+_uname = user.get('full_name') or user.get('username','')
+_role_color = "#00d4ff" if role=="admin" else "#ffd700"
+_role_label = "ADMIN" if role=="admin" else "VIEWER"
+
 st.markdown(
     f'<div class="iqle-nav">'
     f'<div class="iqle-nav-brand">⚙ IQLE</div>'
     f'<div class="iqle-nav-tabs">{tabs_html}</div>'
+    f'<div class="iqle-nav-right">'
+    f'<span class="iqle-user">{_uname}</span>'
+    f'<span class="iqle-role" style="color:{_role_color};">{_role_label}</span>'
+    f'</div>'
     f'</div>',
     unsafe_allow_html=True
 )
+
+# Logout button positioned at top right
+_lo_col, _ = st.columns([1, 20])
+with _lo_col:
+    st.markdown('<div style="position:fixed;top:6px;right:8px;z-index:9999;">',
+                unsafe_allow_html=True)
+    if st.button("⏻", key="nav_logout", help="Logout"):
+        logout()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # Build submenu HTML
 sub_html = ""
