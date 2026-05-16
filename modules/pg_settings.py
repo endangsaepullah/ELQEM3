@@ -1,7 +1,7 @@
 import streamlit as st
 import base64
 from utils.database import get_setting, set_setting, get_media, save_media, delete_media
-from utils.styles import section_header
+from utils.styles import section_header, score_bar, category_banner, plotly_layout, render_footer
 from utils.auth import require_admin, save_login_logo, delete_login_logo, get_login_logo_b64
 
 

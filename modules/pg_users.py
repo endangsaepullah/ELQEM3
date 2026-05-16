@@ -1,6 +1,6 @@
 import streamlit as st
 from utils.database import fetch, fetchone, run
-from utils.styles import section_header
+from utils.styles import section_header, score_bar, category_banner, plotly_layout, render_footer
 from utils.auth import require_admin, is_admin, hash_password
 
 

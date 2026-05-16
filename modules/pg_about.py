@@ -1,7 +1,7 @@
 import streamlit as st
 import base64
 from utils.database import get_setting, get_media
-from utils.styles import section_header, score_bar, render_footer
+from utils.styles import section_header, score_bar, category_banner, plotly_layout, render_footer
 from utils.auth import is_admin
 
 
