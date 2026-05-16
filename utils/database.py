@@ -170,6 +170,29 @@ def init_database():
             filename TEXT, data TEXT, mime_type TEXT,
             uploaded_at TIMESTAMP DEFAULT NOW()
         )""",
+        """CREATE TABLE IF NOT EXISTS maung_defects (
+            id SERIAL PRIMARY KEY,
+            batch TEXT NOT NULL,
+            tanggal TEXT,
+            defect TEXT NOT NULL,
+            kategori TEXT NOT NULL,
+            jenis TEXT NOT NULL,
+            source TEXT DEFAULT 'MoM',
+            created_at TIMESTAMP DEFAULT NOW()
+        )""",
+                """CREATE TABLE IF NOT EXISTS maung_defects (
+            id SERIAL PRIMARY KEY,
+            batch TEXT NOT NULL,
+            tanggal TEXT,
+            defect TEXT NOT NULL,
+            kategori TEXT NOT NULL,
+            jenis TEXT NOT NULL,
+            unit_no TEXT,
+            source TEXT DEFAULT 'MoM',
+            pic TEXT,
+            status TEXT DEFAULT 'Open',
+            created_at TIMESTAMP DEFAULT NOW()
+        )""",
     ]
 
     for sql in tables:

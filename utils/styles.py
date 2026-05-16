@@ -21,7 +21,7 @@ def apply_global_style():
     .stMainBlockContainer {{ padding-top:0 !important; }}
     [data-testid="stSidebar"] {{ background:var(--bg2) !important; border-right:1px solid var(--border); }}
     [data-testid="stSidebarCollapsedControl"] {{ display:none !important; }}
-    section[data-testid="stSidebar"] > div {{ min-width:235px !important; }}
+    section[data-testid="stSidebar"] > div {{ min-width:var(--sidebar-width,235px) !important; max-width:var(--sidebar-width,235px) !important; transition: min-width 0.3s, max-width 0.3s; }}
     h1,h2,h3,h4 {{ font-family:'Rajdhani',sans-serif !important; letter-spacing:1px; color:var(--text) !important; }}
     [data-testid="metric-container"] {{ background:var(--bg3) !important; border:1px solid var(--border) !important; border-radius:10px !important; padding:1rem !important; transition:all 0.2s; }}
     [data-testid="metric-container"]:hover {{ border-color:var(--border2) !important; box-shadow:0 0 20px rgba(0,212,255,0.08) !important; }}
@@ -86,113 +86,125 @@ def render_header():
 
 
 def render_footer():
+    """Footer with functional sitemap using st.button navigation."""
+    import streamlit as st
     line1  = get_setting("footer_line1", "IQLE Platform · Prototype Akademik Magister Teknik")
     line2  = get_setting("footer_line2", "PT Pindad (Persero) · Universitas Pertahanan RI · Quality 4.0")
     year   = get_setting("footer_year",  "2025")
     accent = get_setting("ui_accent_color", "#00d4ff")
 
-    # Sitemap columns
-    menu_col1 = [
-        ("Dashboard Utama",         "home"),
-        ("ISO 9001",                "iso9001"),
-        ("IATF 16949",              "iatf"),
-        ("Engineering Lifecycle",   "lifecycle"),
-        ("Konsistensi Mutu",        "consistency"),
-        ("Evaluasi Batch",          "batch"),
-    ]
-    menu_col2 = [
-        ("Integrated Quality Score","iqscore"),
-        ("Analisis Mutu MAUNG MV3", "maung"),
-        ("Data Wawancara",          "interview"),
-        ("About Platform",          "about"),
-        ("Teori & Referensi",       "theory"),
-        ("Pengaturan Platform",     "settings"),
-    ]
+    st.markdown(
+        '<div style="margin-top:3rem;background:#0d1321;'
+        'border-top:1px solid rgba(0,212,255,0.12);padding:1.5rem 0 0;"></div>',
+        unsafe_allow_html=True
+    )
 
-    def nav_link(label, pid):
-        return (
-            '<a href="#" onclick="window.parent.postMessage(\'nav_' + pid + '\', \'*\');"'
-            ' style="display:block;font-size:.75rem;color:#4a6fa5;text-decoration:none;'
-            'padding:2px 0;transition:color 0.2s;" '
-            'onmouseover="this.style.color=\'' + accent + '\'"'
-            ' onmouseout="this.style.color=\'#4a6fa5\'">'
-            '&#8250; ' + label + '</a>'
+    # ── Sitemap ────────────────────────────────────────────
+    c0, c1, c2, c3, c4 = st.columns([1.2, 1, 1, 1, 1])
+
+    with c0:
+        st.markdown(
+            f'<div style="padding:0 1rem;">'
+            f'<div style="font-family:Rajdhani,sans-serif;font-size:1.05rem;font-weight:700;'
+            f'color:{accent};letter-spacing:2px;margin-bottom:.4rem;">⚙️ IQLE PLATFORM</div>'
+            f'<div style="font-size:.7rem;color:#3d5470;line-height:1.7;">'
+            f'Integrated Engineering<br>Quality Lifecycle Evaluation<br>'
+            f'Prototype Akademik · Quality 4.0</div>'
+            f'<div style="margin-top:.6rem;display:flex;gap:.3rem;flex-wrap:wrap;">'
+            f'<span style="background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);'
+            f'border-radius:3px;padding:1px 6px;font-size:.58rem;color:{accent};'
+            f'font-family:Rajdhani;font-weight:700;">v2.0</span>'
+            f'<span style="background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.25);'
+            f'border-radius:3px;padding:1px 6px;font-size:.58rem;color:#00ff88;'
+            f'font-family:Rajdhani;font-weight:700;">Railway</span>'
+            f'<span style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.25);'
+            f'border-radius:3px;padding:1px 6px;font-size:.58rem;color:#ffd700;'
+            f'font-family:Rajdhani;font-weight:700;">PostgreSQL</span>'
+            f'</div></div>',
+            unsafe_allow_html=True
         )
 
-    col1_html = "".join(nav_link(l, p) for l, p in menu_col1)
-    col2_html = "".join(nav_link(l, p) for l, p in menu_col2)
+    with c1:
+        st.markdown(
+            f'<div style="font-size:.62rem;color:{accent};letter-spacing:2px;'
+            f'text-transform:uppercase;font-weight:700;margin-bottom:.4rem;padding-left:.25rem;">'
+            f'Modul Evaluasi</div>', unsafe_allow_html=True)
+        for label, pid in [
+            ("🏠 Dashboard Utama",       "home"),
+            ("📊 ISO 9001",              "iso9001"),
+            ("🏭 IATF 16949",            "iatf"),
+            ("⚙️ Engineering Lifecycle", "lifecycle"),
+            ("✅ Konsistensi Mutu",       "consistency"),
+            ("📦 Evaluasi Batch",         "batch"),
+        ]:
+            if st.button(label, key=f"ft_{pid}", use_container_width=True):
+                st.session_state.page = pid
+                st.rerun()
 
-    html = (
-        '<div style="margin-top:3rem;background:#0d1321;'
-        'border-top:1px solid rgba(0,212,255,0.12);">'
+    with c2:
+        st.markdown(
+            f'<div style="font-size:.62rem;color:{accent};letter-spacing:2px;'
+            f'text-transform:uppercase;font-weight:700;margin-bottom:.4rem;padding-left:.25rem;">'
+            f'Analisis</div>', unsafe_allow_html=True)
+        for label, pid in [
+            ("🎯 Integrated Quality Score", "iqscore"),
+            ("🚗 Analisis Mutu MAUNG MV3",  "maung"),
+            ("🔮 Simulasi What-If",          "whatif"),
+            ("🏆 Kesimpulan & Hipotesis",    "hipotesis"),
+            ("💬 Data Wawancara",            "interview"),
+        ]:
+            if st.button(label, key=f"ft_{pid}", use_container_width=True):
+                st.session_state.page = pid
+                st.rerun()
 
-        # Sitemap row
-        '<div style="padding:1.5rem 2rem 1rem;'
-        'display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1.5rem;'
-        'border-bottom:1px solid rgba(0,212,255,0.07);">'
+    with c3:
+        st.markdown(
+            f'<div style="font-size:.62rem;color:{accent};letter-spacing:2px;'
+            f'text-transform:uppercase;font-weight:700;margin-bottom:.4rem;padding-left:.25rem;">'
+            f'Platform</div>', unsafe_allow_html=True)
+        for label, pid in [
+            ("👤 About Platform",       "about"),
+            ("📚 Teori & Referensi",    "theory"),
+            ("👥 Manajemen User",       "users"),
+            ("🔧 Pengaturan Platform",  "settings"),
+        ]:
+            if st.button(label, key=f"ft_{pid}", use_container_width=True):
+                st.session_state.page = pid
+                st.rerun()
 
-        # Col 1: Brand
-        '<div>'
-        '<div style="font-family:Rajdhani,sans-serif;font-size:1.1rem;font-weight:700;'
-        'color:' + accent + ';letter-spacing:2px;margin-bottom:.5rem;">⚙️ IQLE PLATFORM</div>'
-        '<div style="font-size:.72rem;color:#3d5470;line-height:1.7;">'
-        'Integrated Engineering<br>Quality Lifecycle Evaluation<br>'
-        'Prototype Akademik · Quality 4.0'
-        '</div>'
-        '<div style="margin-top:.75rem;display:flex;gap:.4rem;flex-wrap:wrap;">'
-        '<span style="background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);'
-        'border-radius:3px;padding:1px 7px;font-size:.6rem;color:' + accent + ';'
-        'font-family:Rajdhani;font-weight:700;">v2.0</span>'
-        '<span style="background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.25);'
-        'border-radius:3px;padding:1px 7px;font-size:.6rem;color:#00ff88;'
-        'font-family:Rajdhani;font-weight:700;">Railway</span>'
-        '<span style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.25);'
-        'border-radius:3px;padding:1px 7px;font-size:.6rem;color:#ffd700;'
-        'font-family:Rajdhani;font-weight:700;">PostgreSQL</span>'
-        '</div></div>'
+    with c4:
+        st.markdown(
+            f'<div style="font-size:.62rem;color:{accent};letter-spacing:2px;'
+            f'text-transform:uppercase;font-weight:700;margin-bottom:.4rem;padding-left:.25rem;">'
+            f'Tentang</div>', unsafe_allow_html=True)
+        st.markdown(
+            f'<div style="font-size:.72rem;color:#3d5470;line-height:1.9;padding:.25rem;">'
+            f'<span style="color:#4a6fa5;font-size:.6rem;text-transform:uppercase;">'
+            f'Peneliti</span><br>'
+            f'<span style="color:#7a9bb5;">Endang Saefullah, ST, CLA</span><br><br>'
+            f'<span style="color:#4a6fa5;font-size:.6rem;text-transform:uppercase;">'
+            f'Institusi</span><br>'
+            f'<span style="color:#7a9bb5;">Universitas Pertahanan RI</span><br><br>'
+            f'<span style="color:#4a6fa5;font-size:.6rem;text-transform:uppercase;">'
+            f'Objek Penelitian</span><br>'
+            f'<span style="color:#7a9bb5;">PT Pindad (Persero)</span>'
+            f'</div>', unsafe_allow_html=True)
 
-        # Col 2: Menu 1
-        '<div>'
-        '<div style="font-size:.65rem;color:' + accent + ';letter-spacing:2px;'
-        'text-transform:uppercase;font-weight:700;margin-bottom:.6rem;">Modul Evaluasi</div>'
-        + col1_html +
-        '</div>'
-
-        # Col 3: Menu 2
-        '<div>'
-        '<div style="font-size:.65rem;color:' + accent + ';letter-spacing:2px;'
-        'text-transform:uppercase;font-weight:700;margin-bottom:.6rem;">Analisis & Laporan</div>'
-        + col2_html +
-        '</div>'
-
-        # Col 4: Info
-        '<div>'
-        '<div style="font-size:.65rem;color:' + accent + ';letter-spacing:2px;'
-        'text-transform:uppercase;font-weight:700;margin-bottom:.6rem;">Tentang</div>'
-        '<div style="font-size:.73rem;color:#3d5470;line-height:1.8;">'
-        'Peneliti:<br>'
-        '<span style="color:#7a9bb5;">Endang Saefullah, ST, CLA</span><br><br>'
-        'Institusi:<br>'
-        '<span style="color:#7a9bb5;">Universitas Pertahanan RI</span><br><br>'
-        'Objek Penelitian:<br>'
-        '<span style="color:#7a9bb5;">PT Pindad (Persero)</span>'
-        '</div></div>'
-
-        '</div>'
-
-        # Bottom bar
-        '<div style="padding:.75rem 2rem;display:flex;justify-content:space-between;'
-        'align-items:center;flex-wrap:wrap;gap:.5rem;">'
-        '<div style="font-size:.72rem;color:#3d5470;">'
-        '<span style="color:' + accent + ';font-family:Rajdhani;font-weight:600;">'
-        + line1 + '</span><br>' + line2 +
-        '</div>'
-        '<div style="font-size:.68rem;color:#2a3f55;text-align:right;'
-        'font-family:JetBrains Mono,monospace;">'
-        '&copy; ' + year + ' · All Rights Reserved · IQLE Platform'
-        '</div></div></div>'
+    # ── Bottom bar ─────────────────────────────────────────
+    st.markdown(
+        f'<div style="margin-top:1rem;padding:.65rem 2rem;'
+        f'background:#070b14;border-top:1px solid rgba(0,212,255,0.07);'
+        f'display:flex;justify-content:space-between;align-items:center;'
+        f'flex-wrap:wrap;gap:.5rem;">'
+        f'<div style="font-size:.7rem;">'
+        f'<span style="color:{accent};font-family:Rajdhani;font-weight:600;">{line1}</span>'
+        f'<span style="color:#2a3f55;margin:0 .5rem;">·</span>'
+        f'<span style="color:#3d5470;">{line2}</span></div>'
+        f'<div style="font-size:.65rem;color:#2a3f55;font-family:JetBrains Mono,monospace;">'
+        f'&copy; {year} All Rights Reserved · IQLE Platform</div>'
+        f'</div>',
+        unsafe_allow_html=True
     )
-    st.markdown(html, unsafe_allow_html=True)
 
 
 def section_header(title, subtitle=None, icon=""):
