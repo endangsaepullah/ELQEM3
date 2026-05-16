@@ -185,6 +185,145 @@ letter-spacing:2px;text-transform:uppercase;padding:.3rem .2rem .1rem;font-famil
 
 render_header()
 
+# ── Top Navigation — 3 Dropdown Menu ──────────────────────
+p_cur = st.session_state.get('page', 'home')
+
+MENU_GROUPS = {
+    "Evaluasi": [
+        ("Dashboard",           "home"),
+        ("ISO 9001",            "iso9001"),
+        ("IATF 16949",          "iatf"),
+        ("Engineering Lifecycle","lifecycle"),
+        ("Konsistensi Mutu",    "consistency"),
+        ("Evaluasi Batch",      "batch"),
+    ],
+    "Analisis": [
+        ("Integrated Quality Score", "iqscore"),
+        ("Analisis Mutu MAUNG MV3",  "maung"),
+        ("Simulasi What-If",         "whatif"),
+        ("Kesimpulan & Hipotesis",   "hipotesis"),
+        ("Data Wawancara",           "interview"),
+    ],
+    "Platform": [
+        ("About Platform",       "about"),
+        ("Teori & Referensi",    "theory"),
+        ("Manajemen User",       "users"),
+        ("Pengaturan Platform",  "settings"),
+    ],
+}
+
+# Determine active group
+def get_active_group(pid):
+    for grp, items in MENU_GROUPS.items():
+        if any(p == pid for _, p in items):
+            return grp
+    return None
+
+active_grp = get_active_group(p_cur)
+active_page_label = next(
+    (lbl for grp in MENU_GROUPS.values() for lbl, pid in grp if pid == p_cur),
+    p_cur.title()
+)
+
+st.markdown(f"""
+<style>
+/* Dropdown navbar */
+div[data-testid="stRadio"]>label{{display:none!important;}}
+div[data-testid="stRadio"]>div{{
+    display:flex!important;flex-direction:row!important;
+    flex-wrap:nowrap!important;gap:0!important;
+    background:#0d1117!important;border:none!important;
+    overflow-x:auto!important;padding:0!important;
+    border-bottom:1px solid #21262d;
+    position:fixed!important;top:0!important;left:0!important;right:0!important;
+    z-index:500;
+}}
+div[data-testid="stRadio"]>div>label{{
+    display:flex!important;align-items:center!important;
+    padding:0 1.1rem!important;height:46px!important;
+    cursor:pointer!important;white-space:nowrap!important;
+    font-family:Inter,sans-serif!important;font-size:.8rem!important;
+    font-weight:500!important;color:#8b949e!important;
+    background:transparent!important;border:none!important;border-radius:0!important;
+    border-bottom:2px solid transparent!important;
+    margin:0!important;flex-shrink:0!important;
+    transition:color .15s,border-color .15s!important;
+}}
+div[data-testid="stRadio"]>div>label:hover{{
+    color:#e6edf3!important;border-bottom-color:#484f58!important;
+    background:rgba(255,255,255,.04)!important;
+}}
+div[data-testid="stRadio"]>div>label:has(input:checked){{
+    color:{accent}!important;font-weight:700!important;
+    border-bottom-color:{accent}!important;
+}}
+div[data-testid="stRadio"]>div>label>div:first-child{{display:none!important;}}
+.nav-brand{{
+    font-family:Rajdhani,sans-serif;font-size:.9rem;font-weight:700;
+    color:{accent};letter-spacing:2px;padding:0 1.25rem;
+    border-right:1px solid #21262d;
+    display:flex;align-items:center;height:46px;
+    background:#0d1117;flex-shrink:0;white-space:nowrap;
+}}
+/* Current page indicator under navbar */
+.page-breadcrumb{{
+    font-size:.68rem;color:#4a6fa5;padding:.3rem 1.5rem;
+    background:#0d1117;border-bottom:1px solid #21262d;
+    font-family:Inter,sans-serif;letter-spacing:.5px;
+    margin-top:46px;
+}}
+.page-breadcrumb span{{color:#7a9bb5;}}
+@media(max-width:768px){{
+    div[data-testid="stRadio"]>div>label{{
+        padding:0 .7rem!important;font-size:.72rem!important;height:42px!important;
+    }}
+    .nav-brand{{padding:0 .75rem;height:42px;}}
+}}
+</style>
+""", unsafe_allow_html=True)
+
+# Navbar: 3 group selectbox as radio
+groups = list(MENU_GROUPS.keys())
+cur_grp_idx = groups.index(active_grp) if active_grp else 0
+
+col_brand, col_nav = st.columns([0.1, 0.9])
+with col_brand:
+    st.markdown('<div class="nav-brand">⚙ IQLE</div>', unsafe_allow_html=True)
+with col_nav:
+    chosen_grp = st.radio("grp", groups, index=cur_grp_idx,
+                          horizontal=True, key="topnav_grp",
+                          label_visibility="collapsed")
+
+# Breadcrumb + sub-menu for chosen group
+st.markdown(
+    f'<div class="page-breadcrumb">'
+    f'{chosen_grp} &nbsp;›&nbsp; <span>{active_page_label}</span>'
+    f'</div>',
+    unsafe_allow_html=True
+)
+
+# Sub-menu as selectbox
+sub_items  = MENU_GROUPS[chosen_grp]
+sub_labels = [lbl for lbl, _ in sub_items]
+sub_pids   = [pid for _, pid in sub_items]
+cur_sub    = sub_pids.index(p_cur) if p_cur in sub_pids else 0
+
+# If switched to different group, auto-navigate to first item
+if active_grp != chosen_grp:
+    cur_sub = 0
+
+chosen_sub = st.selectbox(
+    "page", sub_labels, index=cur_sub,
+    key="topnav_sub", label_visibility="collapsed"
+)
+chosen_pid = sub_pids[sub_labels.index(chosen_sub)]
+if chosen_pid != p_cur:
+    st.session_state.page = chosen_pid
+    st.rerun()
+
+
+render_header()
+
 # ── Top Navigation ──────────────────────────────────────────
 p_cur = st.session_state.get('page', 'home')
 NAV_ITEMS = [
