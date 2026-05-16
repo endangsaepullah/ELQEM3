@@ -40,7 +40,7 @@ st.markdown(f"""
 .stMainBlockContainer,.block-container{{
     max-width:100%!important;
     padding:0 1.5rem!important;
-    padding-top:50px!important;
+    padding-top:84px!important;
 }}
 /* Hide default sidebar collapse button */
 [data-testid="stSidebarCollapsedControl"]{{display:none!important;}}
@@ -59,7 +59,7 @@ header[data-testid="stHeader"]{{display:none!important;}}
     section[data-testid="stSidebar"].open{{
         transform:translateX(0)!important;
     }}
-    .stMainBlockContainer,.block-container{{padding:.5rem!important;padding-top:50px!important;}}
+    .stMainBlockContainer,.block-container{{padding:.5rem!important;padding-top:84px!important;}}
 }}
 
 /* nav handled by iqle-nav CSS below */
@@ -147,35 +147,30 @@ st.markdown(f"""
 .iqle-subnav a.active {{ color:#e6edf3; font-weight:600; border-bottom-color:{accent}; }}
 /* User info right side */
 .iqle-nav-right {{
-    margin-left:auto; display:flex; align-items:center; gap:.6rem;
-    padding:0 .75rem; border-left:1px solid #21262d; flex-shrink:0;
+    margin-left:auto; display:flex; align-items:center; gap:.5rem;
+    padding:0 .6rem 0 .75rem; border-left:1px solid #21262d; flex-shrink:0;
+    height:100%;
 }}
-.iqle-user {{ font-size:.72rem; color:#6e7681; white-space:nowrap; max-width:120px;
-    overflow:hidden; text-overflow:ellipsis; font-family:Inter,sans-serif; }}
-.iqle-role {{ font-size:.62rem; font-weight:700; font-family:Rajdhani,sans-serif;
-    letter-spacing:1px; border-radius:3px; padding:1px 5px;
-    border:1px solid currentColor; opacity:.8; }}
-/* Logout button */
-div[data-testid="column"]:has(button[data-testid="baseButton-secondary"][title="Logout"]) {{
-    position:fixed; top:5px; right:8px; z-index:9999; width:auto!important;
+.iqle-greeting {{ font-size:.7rem; color:#6e7681; white-space:nowrap;
+    font-family:Inter,sans-serif; }}
+.iqle-greeting strong {{ color:#c9d1d9; font-weight:600; }}
+.iqle-role {{ font-size:.58rem; font-weight:700; font-family:Rajdhani,sans-serif;
+    letter-spacing:1px; border-radius:3px; padding:1px 6px;
+    border:1px solid currentColor; opacity:.85; white-space:nowrap; }}
+.iqle-logout {{
+    background:rgba(255,51,102,0.1); border:1px solid rgba(255,51,102,0.35);
+    color:#ff3366; font-size:.72rem; font-weight:600;
+    padding:3px 10px; border-radius:5px; cursor:pointer;
+    font-family:Rajdhani,sans-serif; letter-spacing:.5px;
+    white-space:nowrap; transition:background .15s;
 }}
-button[title="Logout"] {{
-    background:rgba(255,51,102,0.12)!important;
-    border:1px solid rgba(255,51,102,0.4)!important;
-    color:#ff3366!important; font-size:.8rem!important;
-    width:32px!important; height:32px!important;
-    padding:0!important; border-radius:6px!important;
-    box-shadow:none!important;
-}}
-button[title="Logout"]:hover {{
-    background:rgba(255,51,102,0.25)!important;
-}}
+.iqle-logout:hover {{ background:rgba(255,51,102,0.22); }}
 /* Push content below both navbars */
 .stMainBlockContainer, .block-container {{
-    padding-top:88px !important;
+    padding-top:84px !important;
     max-width:100% !important;
-    padding-left:1.5rem !important;
-    padding-right:1.5rem !important;
+    padding-left:1rem !important;
+    padding-right:1rem !important;
 }}
 @media(max-width:768px) {{
     .iqle-nav-tab {{ padding:0 .65rem; font-size:.72rem; }}
@@ -202,21 +197,34 @@ st.markdown(
     f'<div class="iqle-nav-brand">⚙ IQLE</div>'
     f'<div class="iqle-nav-tabs">{tabs_html}</div>'
     f'<div class="iqle-nav-right">'
-    f'<span class="iqle-user">{_uname}</span>'
+    f'<span class="iqle-greeting">Halo, <strong>{_uname}</strong>&nbsp;—&nbsp;'
+    f'masuk sebagai </span>'
     f'<span class="iqle-role" style="color:{_role_color};">{_role_label}</span>'
     f'</div>'
     f'</div>',
     unsafe_allow_html=True
 )
 
-# Logout button positioned at top right
-_lo_col, _ = st.columns([1, 20])
-with _lo_col:
-    st.markdown('<div style="position:fixed;top:6px;right:8px;z-index:9999;">',
-                unsafe_allow_html=True)
-    if st.button("⏻", key="nav_logout", help="Logout"):
-        logout()
-    st.markdown('</div>', unsafe_allow_html=True)
+# Logout via button styled into navbar right
+st.markdown("""
+<style>
+button[data-testid="baseButton-secondary"][kind="secondary"]:has(+ div),
+div.logout-btn-wrap button {
+    position:fixed !important; top:7px !important; right:8px !important;
+    z-index:9999 !important; height:30px !important;
+    background:rgba(255,51,102,0.1) !important;
+    border:1px solid rgba(255,51,102,0.35) !important;
+    color:#ff3366 !important; font-size:.72rem !important; font-weight:600 !important;
+    padding:0 10px !important; border-radius:5px !important;
+    font-family:Rajdhani,sans-serif !important; letter-spacing:.5px !important;
+    box-shadow:none !important; width:auto !important;
+}
+</style>
+<div class="logout-btn-wrap">
+""", unsafe_allow_html=True)
+if st.button("⏻ Logout", key="nav_logout"):
+    logout()
+st.markdown("</div>", unsafe_allow_html=True)
 
 # Build submenu HTML
 sub_html = ""
