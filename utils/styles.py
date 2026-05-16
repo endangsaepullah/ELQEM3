@@ -20,6 +20,8 @@ def apply_global_style():
     header[data-testid="stHeader"] {{ display:none !important; }}
     .stMainBlockContainer {{ padding-top:0 !important; }}
     [data-testid="stSidebar"] {{ background:var(--bg2) !important; border-right:1px solid var(--border); }}
+    [data-testid="stSidebarCollapsedControl"] {{ display:none !important; }}
+    section[data-testid="stSidebar"] > div {{ min-width:235px !important; }}
     h1,h2,h3,h4 {{ font-family:'Rajdhani',sans-serif !important; letter-spacing:1px; color:var(--text) !important; }}
     [data-testid="metric-container"] {{ background:var(--bg3) !important; border:1px solid var(--border) !important; border-radius:10px !important; padding:1rem !important; transition:all 0.2s; }}
     [data-testid="metric-container"]:hover {{ border-color:var(--border2) !important; box-shadow:0 0 20px rgba(0,212,255,0.08) !important; }}
@@ -89,21 +91,105 @@ def render_footer():
     year   = get_setting("footer_year",  "2025")
     accent = get_setting("ui_accent_color", "#00d4ff")
 
+    # Sitemap columns
+    menu_col1 = [
+        ("Dashboard Utama",         "home"),
+        ("ISO 9001",                "iso9001"),
+        ("IATF 16949",              "iatf"),
+        ("Engineering Lifecycle",   "lifecycle"),
+        ("Konsistensi Mutu",        "consistency"),
+        ("Evaluasi Batch",          "batch"),
+    ]
+    menu_col2 = [
+        ("Integrated Quality Score","iqscore"),
+        ("Analisis Mutu MAUNG MV3", "maung"),
+        ("Data Wawancara",          "interview"),
+        ("About Platform",          "about"),
+        ("Teori & Referensi",       "theory"),
+        ("Pengaturan Platform",     "settings"),
+    ]
+
+    def nav_link(label, pid):
+        return (
+            '<a href="#" onclick="window.parent.postMessage(\'nav_' + pid + '\', \'*\');"'
+            ' style="display:block;font-size:.75rem;color:#4a6fa5;text-decoration:none;'
+            'padding:2px 0;transition:color 0.2s;" '
+            'onmouseover="this.style.color=\'' + accent + '\'"'
+            ' onmouseout="this.style.color=\'#4a6fa5\'">'
+            '&#8250; ' + label + '</a>'
+        )
+
+    col1_html = "".join(nav_link(l, p) for l, p in menu_col1)
+    col2_html = "".join(nav_link(l, p) for l, p in menu_col2)
+
     html = (
-        '<div style="margin-top:3rem;padding:1.25rem 2rem;'
-        'background:#0d1321;border-top:1px solid rgba(0,212,255,0.12);">'
-        '<div style="display:flex;justify-content:space-between;align-items:center;'
-        'flex-wrap:wrap;gap:.5rem;">'
+        '<div style="margin-top:3rem;background:#0d1321;'
+        'border-top:1px solid rgba(0,212,255,0.12);">'
+
+        # Sitemap row
+        '<div style="padding:1.5rem 2rem 1rem;'
+        'display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1.5rem;'
+        'border-bottom:1px solid rgba(0,212,255,0.07);">'
+
+        # Col 1: Brand
         '<div>'
-        '<div style="font-family:Rajdhani,sans-serif;font-size:.8rem;'
-        'color:' + accent + ';letter-spacing:2px;font-weight:600;">' + line1 + '</div>'
-        '<div style="font-size:.7rem;color:#3d5470;margin-top:.15rem;letter-spacing:1px;">'
-        + line2 + '</div>'
+        '<div style="font-family:Rajdhani,sans-serif;font-size:1.1rem;font-weight:700;'
+        'color:' + accent + ';letter-spacing:2px;margin-bottom:.5rem;">⚙️ IQLE PLATFORM</div>'
+        '<div style="font-size:.72rem;color:#3d5470;line-height:1.7;">'
+        'Integrated Engineering<br>Quality Lifecycle Evaluation<br>'
+        'Prototype Akademik · Quality 4.0'
         '</div>'
-        '<div style="font-size:.7rem;color:#3d5470;text-align:right;">'
-        '<div style="font-family:JetBrains Mono,monospace;color:#4a6fa5;">'
-        'v2.0 · Railway · PostgreSQL</div>'
-        '<div>&copy; ' + year + ' · All Rights Reserved</div>'
+        '<div style="margin-top:.75rem;display:flex;gap:.4rem;flex-wrap:wrap;">'
+        '<span style="background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);'
+        'border-radius:3px;padding:1px 7px;font-size:.6rem;color:' + accent + ';'
+        'font-family:Rajdhani;font-weight:700;">v2.0</span>'
+        '<span style="background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.25);'
+        'border-radius:3px;padding:1px 7px;font-size:.6rem;color:#00ff88;'
+        'font-family:Rajdhani;font-weight:700;">Railway</span>'
+        '<span style="background:rgba(255,215,0,.1);border:1px solid rgba(255,215,0,.25);'
+        'border-radius:3px;padding:1px 7px;font-size:.6rem;color:#ffd700;'
+        'font-family:Rajdhani;font-weight:700;">PostgreSQL</span>'
+        '</div></div>'
+
+        # Col 2: Menu 1
+        '<div>'
+        '<div style="font-size:.65rem;color:' + accent + ';letter-spacing:2px;'
+        'text-transform:uppercase;font-weight:700;margin-bottom:.6rem;">Modul Evaluasi</div>'
+        + col1_html +
+        '</div>'
+
+        # Col 3: Menu 2
+        '<div>'
+        '<div style="font-size:.65rem;color:' + accent + ';letter-spacing:2px;'
+        'text-transform:uppercase;font-weight:700;margin-bottom:.6rem;">Analisis & Laporan</div>'
+        + col2_html +
+        '</div>'
+
+        # Col 4: Info
+        '<div>'
+        '<div style="font-size:.65rem;color:' + accent + ';letter-spacing:2px;'
+        'text-transform:uppercase;font-weight:700;margin-bottom:.6rem;">Tentang</div>'
+        '<div style="font-size:.73rem;color:#3d5470;line-height:1.8;">'
+        'Peneliti:<br>'
+        '<span style="color:#7a9bb5;">Endang Saefullah, ST, CLA</span><br><br>'
+        'Institusi:<br>'
+        '<span style="color:#7a9bb5;">Universitas Pertahanan RI</span><br><br>'
+        'Objek Penelitian:<br>'
+        '<span style="color:#7a9bb5;">PT Pindad (Persero)</span>'
+        '</div></div>'
+
+        '</div>'
+
+        # Bottom bar
+        '<div style="padding:.75rem 2rem;display:flex;justify-content:space-between;'
+        'align-items:center;flex-wrap:wrap;gap:.5rem;">'
+        '<div style="font-size:.72rem;color:#3d5470;">'
+        '<span style="color:' + accent + ';font-family:Rajdhani;font-weight:600;">'
+        + line1 + '</span><br>' + line2 +
+        '</div>'
+        '<div style="font-size:.68rem;color:#2a3f55;text-align:right;'
+        'font-family:JetBrains Mono,monospace;">'
+        '&copy; ' + year + ' · All Rights Reserved · IQLE Platform'
         '</div></div></div>'
     )
     st.markdown(html, unsafe_allow_html=True)
