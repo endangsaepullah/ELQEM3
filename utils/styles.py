@@ -82,67 +82,56 @@ def render_footer():
     accent = get_setting("ui_accent_color", "#00d4ff")
     year   = get_setting("footer_year", "2025")
 
+    cols = [
+        ("Modul Evaluasi", [
+            "Dashboard Utama", "ISO 9001", "IATF 16949",
+            "Engineering Lifecycle", "Konsistensi Mutu", "Evaluasi Batch",
+        ]),
+        ("Analisis & Laporan", [
+            "Integrated Quality Score", "Analisis Mutu MAUNG MV3",
+            "Simulasi What-If", "Kesimpulan & Hipotesis", "Data Wawancara",
+        ]),
+        ("Platform", [
+            "About Platform", "Teori & Referensi",
+            "Manajemen User", "Pengaturan Platform",
+        ]),
+        ("Tentang", [
+            "Endang Saefullah, ST, CLA",
+            "Universitas Pertahanan RI",
+            "PT Pindad (Persero)",
+            "Magister Teknik Industri Pertahanan",
+        ]),
+    ]
+
+    col_divs = ""
+    for title, items in cols:
+        rows = "".join(f'<div style="padding:2px 0;color:#4a6fa5;font-size:.71rem;">{i}</div>' for i in items)
+        col_divs += (
+            '<div style="min-width:0;">'
+            '<div style="font-family:Rajdhani,sans-serif;font-size:.6rem;font-weight:700;'
+            'color:' + accent + ';letter-spacing:2px;text-transform:uppercase;'
+            'margin-bottom:.5rem;padding-bottom:.3rem;'
+            'border-bottom:1px solid #21262d;">' + title + '</div>'
+            + rows + '</div>'
+        )
+
     html = (
-        '<div style="margin-top:3rem;background:#0a0e1a;'
-        'border-top:1px solid #21262d;padding:1.5rem 2rem 1rem;">'
-
-        '<div style="display:flex;flex-wrap:wrap;gap:2rem;margin-bottom:1.25rem;">'
-
-        # Col 1
-        '<div style="min-width:150px;">'
-        '<div style="font-family:Rajdhani,sans-serif;font-size:.62rem;font-weight:700;'
-        'color:' + accent + ';letter-spacing:2px;text-transform:uppercase;margin-bottom:.5rem;">'
-        'Modul Evaluasi</div>'
-        '<div style="font-size:.71rem;color:#4a6fa5;line-height:1.9;">'
-        'Dashboard Utama<br>ISO 9001<br>IATF 16949<br>'
-        'Engineering Lifecycle<br>Konsistensi Mutu<br>Evaluasi Batch'
-        '</div></div>'
-
-        # Col 2
-        '<div style="min-width:160px;">'
-        '<div style="font-family:Rajdhani,sans-serif;font-size:.62rem;font-weight:700;'
-        'color:' + accent + ';letter-spacing:2px;text-transform:uppercase;margin-bottom:.5rem;">'
-        'Analisis &amp; Laporan</div>'
-        '<div style="font-size:.71rem;color:#4a6fa5;line-height:1.9;">'
-        'Integrated Quality Score<br>Analisis Mutu MAUNG MV3<br>'
-        'Simulasi What-If<br>Kesimpulan &amp; Hipotesis<br>Data Wawancara'
-        '</div></div>'
-
-        # Col 3
-        '<div style="min-width:140px;">'
-        '<div style="font-family:Rajdhani,sans-serif;font-size:.62rem;font-weight:700;'
-        'color:' + accent + ';letter-spacing:2px;text-transform:uppercase;margin-bottom:.5rem;">'
-        'Platform</div>'
-        '<div style="font-size:.71rem;color:#4a6fa5;line-height:1.9;">'
-        'About Platform<br>Teori &amp; Referensi<br>Manajemen User<br>Pengaturan Platform'
-        '</div></div>'
-
-        # Col 4
-        '<div style="min-width:170px;margin-left:auto;">'
-        '<div style="font-family:Rajdhani,sans-serif;font-size:.62rem;font-weight:700;'
-        'color:' + accent + ';letter-spacing:2px;text-transform:uppercase;margin-bottom:.5rem;">'
-        'Tentang</div>'
-        '<div style="font-size:.71rem;color:#4a6fa5;line-height:1.9;">'
-        'Endang Saefullah, ST, CLA<br>'
-        'Universitas Pertahanan RI (UNHAN)<br>'
-        'PT Pindad (Persero)<br>'
-        'Magister Teknik Industri Pertahanan'
-        '</div></div>'
-
+        '<div style="margin-top:3rem;background:#0a0e1a;border-top:1px solid #21262d;'
+        'padding:1.5rem 2rem 0;">'
+        '<div style="display:grid;grid-template-columns:repeat(4,1fr);'
+        'gap:1.5rem;margin-bottom:1.25rem;">'
+        + col_divs +
         '</div>'
-
-        # Bottom bar
-        '<div style="border-top:1px solid #21262d;padding-top:.65rem;'
+        '<div style="border-top:1px solid #21262d;padding:.65rem 0;'
         'display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.35rem;">'
-        '<div style="font-family:Rajdhani,sans-serif;font-size:.68rem;'
+        '<span style="font-family:Rajdhani,sans-serif;font-size:.68rem;'
         'color:' + accent + ';font-weight:600;letter-spacing:1px;">'
-        'IQLE Platform &nbsp;&middot;&nbsp; Quality 4.0 Dashboard</div>'
-        '<div style="font-size:.62rem;color:#3d5470;font-family:Rajdhani;">'
-        'PT Pindad (Persero) &nbsp;&middot;&nbsp; Universitas Pertahanan RI'
-        ' &nbsp;&middot;&nbsp; &copy; ' + year +
+        'IQLE Platform &nbsp;&middot;&nbsp; Quality 4.0 Dashboard'
+        '</span>'
+        '<span style="font-size:.62rem;color:#3d5470;font-family:Rajdhani;">'
+        'PT Pindad &nbsp;&middot;&nbsp; Universitas Pertahanan RI'
+        ' &nbsp;&middot;&nbsp; &copy; ' + year + '</span>'
         '</div></div>'
-
-        '</div>'
     )
     st.markdown(html, unsafe_allow_html=True)
 
