@@ -159,98 +159,105 @@ with st.sidebar:
     st.markdown("---")
     if st.button("Logout", use_container_width=True): logout()
 
-# GitHub-style navbar using CSS-styled st.buttons
-p_cur = st.session_state.page
+# ── Top Navigation (st.radio styled as tab bar) ────────────
+p_cur = st.session_state.get('page', 'home')
 
 NAV_ITEMS = [
-    ("🏠", "Dashboard",  "home"),
-    ("📊", "ISO 9001",   "iso9001"),
-    ("🏭", "IATF",       "iatf"),
-    ("⚙️", "Lifecycle",  "lifecycle"),
-    ("✅", "Konsistensi","consistency"),
-    ("📦", "Batch",      "batch"),
-    ("🎯", "IQ Score",   "iqscore"),
-    ("🚗", "MAUNG",      "maung"),
-    ("🔮", "What-If",    "whatif"),
-    ("🏆", "Hipotesis",  "hipotesis"),
-    ("💬", "Wawancara",  "interview"),
-    ("👤", "About",      "about"),
+    ("Dashboard",   "home"),
+    ("ISO 9001",    "iso9001"),
+    ("IATF 16949",  "iatf"),
+    ("Lifecycle",   "lifecycle"),
+    ("Konsistensi", "consistency"),
+    ("Batch",       "batch"),
+    ("IQ Score",    "iqscore"),
+    ("MAUNG MV3",   "maung"),
+    ("What-If",     "whatif"),
+    ("Hipotesis",   "hipotesis"),
+    ("Wawancara",   "interview"),
+    ("About",       "about"),
 ]
 if is_admin():
-    NAV_ITEMS += [("👥","Users","users"),("🔧","Settings","settings")]
+    NAV_ITEMS += [("Users", "users"), ("Settings", "settings")]
 
-# CSS to transform st.buttons into GitHub tabs
+labels = [n for n, _ in NAV_ITEMS]
+pids   = [p for _, p in NAV_ITEMS]
+cur_idx = pids.index(p_cur) if p_cur in pids else 0
+
 st.markdown(f"""
 <style>
-/* Wrap the nav row */
-.nav-wrap {{
-    background:#0d1117;
-    border-bottom:1px solid #21262d;
-    display:flex; align-items:center;
-    padding:0; margin-bottom:.5rem;
-    overflow-x:auto; overflow-y:hidden;
+/* ── Nav bar wrapper ── */
+div[data-testid="stHorizontalBlock"].nav-row {{
+    background:#0d1117 !important;
+    border-bottom:1px solid #21262d !important;
+    padding:0 !important; gap:0 !important;
     position:sticky; top:0; z-index:200;
-    gap:0;
+    overflow-x:auto; overflow-y:hidden;
+    flex-wrap:nowrap !important;
 }}
-/* Brand in nav */
-.nav-wrap .nav-brand {{
-    font-family:Rajdhani,sans-serif; font-size:.9rem; font-weight:700;
-    color:{accent}; letter-spacing:2px; padding:0 1rem 0 .75rem;
-    border-right:1px solid #21262d; white-space:nowrap;
-    height:48px; display:flex; align-items:center; flex-shrink:0;
+/* Radio as tabs */
+div[data-testid="stRadio"] > label {{ display:none !important; }}
+div[data-testid="stRadio"] > div {{
+    display:flex !important; flex-direction:row !important;
+    flex-wrap:nowrap !important; gap:0 !important;
+    background:#0d1117 !important; border:none !important;
+    overflow-x:auto !important; padding:0 !important;
+    border-bottom:1px solid #21262d;
+    position:sticky; top:0; z-index:200;
 }}
-/* Override ALL buttons inside .nav-wrap */
-.nav-wrap div[data-testid="column"] {{
-    min-width:fit-content !important; padding:0 !important; flex:0 !important;
-}}
-.nav-wrap div[data-testid="column"] > div > div > div > button {{
+div[data-testid="stRadio"] > div > label {{
+    display:flex !important; align-items:center !important;
+    padding:0 .85rem !important; height:46px !important;
+    cursor:pointer !important; white-space:nowrap !important;
+    font-family:Inter,sans-serif !important; font-size:.77rem !important;
+    font-weight:500 !important; color:#8b949e !important;
     background:transparent !important;
-    border:none !important;
+    border:none !important; border-radius:0 !important;
     border-bottom:2px solid transparent !important;
-    border-radius:0 !important;
-    color:#8b949e !important;
-    font-family:Inter,sans-serif !important;
-    font-size:.77rem !important;
-    font-weight:500 !important;
-    height:48px !important;
-    padding:0 .75rem !important;
-    box-shadow:none !important;
-    white-space:nowrap !important;
-    width:auto !important;
+    margin:0 !important; flex-shrink:0 !important;
     transition:color .15s, border-color .15s !important;
-    letter-spacing:.2px !important;
 }}
-.nav-wrap div[data-testid="column"] > div > div > div > button:hover {{
+div[data-testid="stRadio"] > div > label:hover {{
     color:#e6edf3 !important;
-    background:rgba(255,255,255,0.04) !important;
     border-bottom-color:#484f58 !important;
+    background:rgba(255,255,255,0.04) !important;
 }}
-.nav-wrap div[data-testid="column"] > div > div > div > button[kind="primary"] {{
-    color:#e6edf3 !important;
-    font-weight:600 !important;
+div[data-testid="stRadio"] > div > label[data-baseweb="radio"] input:checked + div,
+div[data-testid="stRadio"] > div > label:has(input:checked) {{
     border-bottom-color:{accent} !important;
-    background:transparent !important;
+    color:#e6edf3 !important; font-weight:600 !important;
+}}
+div[data-testid="stRadio"] > div > label > div:first-child {{
+    display:none !important;
+}}
+/* Brand */
+.nav-brand {{
+    font-family:Rajdhani,sans-serif; font-size:.9rem; font-weight:700;
+    color:{accent}; letter-spacing:2px; padding:0 1rem;
+    border-right:1px solid #21262d;
+    display:flex; align-items:center; height:46px;
+    background:#0d1117; flex-shrink:0; white-space:nowrap;
 }}
 @media(max-width:768px) {{
-    .nav-wrap .nav-brand {{ padding:0 .6rem; font-size:.8rem; }}
-    .nav-wrap div[data-testid="column"] > div > div > div > button {{
-        padding:0 .4rem !important; font-size:.68rem !important;
+    div[data-testid="stRadio"] > div > label {{
+        padding:0 .5rem !important; font-size:.68rem !important; height:40px !important;
     }}
+    .nav-brand {{ padding:0 .6rem; font-size:.78rem; height:40px; }}
 }}
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="nav-wrap"><div class="nav-brand">⚙ IQLE</div>', unsafe_allow_html=True)
-_ncols = st.columns(len(NAV_ITEMS))
-for _i, (_ico, _name, _pid) in enumerate(NAV_ITEMS):
-    with _ncols[_i]:
-        _label = f"{_ico} {_name}"
-        if st.button(_label, key=f"gnav_{_pid}",
-                     use_container_width=False,
-                     type="primary" if p_cur==_pid else "secondary"):
-            st.session_state.page = _pid
-            st.rerun()
-st.markdown('</div>', unsafe_allow_html=True)
+# Brand + radio nav
+col_brand, col_nav = st.columns([0.08, 0.92])
+with col_brand:
+    st.markdown('<div class="nav-brand">⚙ IQLE</div>', unsafe_allow_html=True)
+with col_nav:
+    chosen = st.radio("nav", labels, index=cur_idx, horizontal=True,
+                      key="topnav", label_visibility="collapsed")
+    chosen_pid = pids[labels.index(chosen)]
+    if chosen_pid != p_cur:
+        st.session_state.page = chosen_pid
+        st.rerun()
+
 
 render_header()
 
