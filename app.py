@@ -1,14 +1,12 @@
 import streamlit as st
-import os
 
 st.set_page_config(
     page_title="IQLE Platform | PT Pindad",
-    page_icon="⚙️",
+    page_icon="⚙",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ── Init ───────────────────────────────────────────────────
 from utils.database import init_database, get_setting
 from utils.auth import create_default_admin, is_admin, logout
 from utils.seed_data import seed_dummy_data
@@ -20,50 +18,11 @@ try:
     seed_dummy_data()
 except Exception as e:
     st.error(f"Database Error: {e}")
-    st.info("Pastikan DATABASE_URL sudah diset di Railway environment variables.")
     st.stop()
 
 apply_global_style()
+accent = get_setting("ui_accent_color", "#00d4ff")
 
-# Responsive CSS
-st.markdown('''
-<style>
-/* Mobile responsive */
-@media (max-width: 768px) {
-    [data-testid="stSidebar"] { display: none !important; }
-    .stMainBlockContainer { padding: 0 .5rem !important; }
-    .block-container { padding: 0 .5rem !important; }
-}
-/* Tablet */
-@media (max-width: 1024px) {
-    section[data-testid="stSidebar"]>div {
-        min-width: 200px !important;
-        max-width: 200px !important;
-    }
-}
-/* Top nav bar */
-.top-nav-bar {
-    display: flex; gap: .35rem; flex-wrap: wrap;
-    padding: .5rem 0; margin-bottom: .75rem;
-    border-bottom: 1px solid rgba(0,212,255,0.12);
-}
-.top-nav-bar a {
-    font-family: Rajdhani, sans-serif; font-size: .72rem;
-    font-weight: 600; letter-spacing: 1px;
-    color: #4a6fa5; text-decoration: none;
-    padding: 3px 10px; border-radius: 4px;
-    border: 1px solid rgba(0,212,255,0.1);
-    transition: all .2s;
-}
-.top-nav-bar a:hover { color: #00d4ff; border-color: rgba(0,212,255,0.4); }
-.top-nav-bar a.active {
-    color: #00d4ff; background: rgba(0,212,255,0.1);
-    border-color: rgba(0,212,255,0.4);
-}
-</style>
-''', unsafe_allow_html=True)
-
-# ── Auth gate ──────────────────────────────────────────────
 if not st.session_state.get('logged_in'):
     from modules.pg_login import show_login
     show_login()
@@ -71,225 +30,123 @@ if not st.session_state.get('logged_in'):
 
 user = st.session_state.get('user', {})
 role = st.session_state.get('role', 'viewer')
-accent = get_setting("ui_accent_color", "#00d4ff")
+if 'page' not in st.session_state:
+    st.session_state.page = 'home'
 
-# ── Sidebar ────────────────────────────────────────────────
+# Hamburger + nav CSS
+st.markdown(f"""
+<style>
+.sb-tog-btn {{
+    display:none; position:fixed; top:10px; left:10px; z-index:9999;
+    background:{accent}; color:#000; border:none; border-radius:5px;
+    padding:5px 10px; cursor:pointer; font-size:1.1rem; font-weight:700;
+    box-shadow:0 2px 12px rgba(0,212,255,0.35);
+}}
+.sb-overlay {{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:998; backdrop-filter:blur(2px); }}
+@media(max-width:768px) {{
+    .sb-tog-btn {{ display:block !important; }}
+    [data-testid="stSidebar"] {{ position:fixed !important; z-index:999 !important; transform:translateX(-110%) !important; transition:transform .25s !important; height:100vh !important; top:0 !important; left:0 !important; min-width:260px !important; max-width:260px !important; box-shadow:4px 0 24px rgba(0,0,0,0.6) !important; }}
+    [data-testid="stSidebar"].sb-open {{ transform:translateX(0) !important; }}
+    .sb-overlay.sb-open {{ display:block; }}
+    .stMainBlockContainer {{ padding:.5rem !important; margin-left:0 !important; }}
+}}
+.top-navbar {{ background:#0a0e1a; border-bottom:1px solid rgba(0,212,255,0.12); padding:.4rem 1rem; display:flex; gap:.25rem; flex-wrap:wrap; align-items:center; position:sticky; top:0; z-index:100; overflow-x:auto; }}
+.nav-pill {{ font-family:Rajdhani,sans-serif; font-size:.7rem; font-weight:600; letter-spacing:.8px; text-transform:uppercase; padding:.22rem .65rem; border-radius:4px; border:1px solid rgba(255,255,255,0.07); color:#4a6fa5; background:transparent; white-space:nowrap; display:inline-block; }}
+.nav-pill.active {{ color:#000 !important; font-weight:700; background:{accent}; border-color:{accent}; }}
+</style>
+<button class="sb-tog-btn" onclick="(function(){{var s=document.querySelector('[data-testid=stSidebar]'),o=document.getElementById('sbo');s.classList.toggle('sb-open');o.classList.toggle('sb-open');}})()">&#9776;</button>
+<div class="sb-overlay" id="sbo" onclick="(function(){{var s=document.querySelector('[data-testid=stSidebar]'),o=document.getElementById('sbo');s.classList.remove('sb-open');o.classList.remove('sb-open');}})()"></div>
+""", unsafe_allow_html=True)
+
+# Sidebar
 with st.sidebar:
-    # ── Toggle sidebar width ───────────────────────────────
     if 'sb_wide' not in st.session_state:
         st.session_state.sb_wide = True
     wide = st.session_state.sb_wide
-    sb_w = 255 if wide else 68
+    sb_w = 255 if wide else 72
+    st.markdown(f'<style>section[data-testid="stSidebar"]>div{{min-width:{sb_w}px!important;max-width:{sb_w}px!important;}}</style>', unsafe_allow_html=True)
 
-    st.markdown(
-        f'<style>'
-        f'section[data-testid="stSidebar"]>div{{min-width:{sb_w}px!important;'
-        f'max-width:{sb_w}px!important;transition:min-width .25s,max-width .25s;}}'
-        f'</style>',
-        unsafe_allow_html=True
-    )
-
-    # Toggle button row
-    tc1, tc2 = st.columns([1, 3])
-    with tc1:
-        if st.button("◀" if wide else "▶", key="sb_tog",
-                     help="Ciutkan sidebar" if wide else "Lebarkan sidebar"):
-            st.session_state.sb_wide = not wide
-            st.rerun()
-    with tc2:
+    c1, c2 = st.columns([1,3])
+    with c1:
+        if st.button("◀" if wide else "▶", key="sb_tog"):
+            st.session_state.sb_wide = not wide; st.rerun()
+    with c2:
         if wide:
-            st.markdown(
-                '<div style="font-size:.6rem;color:#4a6fa5;padding-top:.45rem;'
-                'letter-spacing:1px;">CIUTKAN</div>',
-                unsafe_allow_html=True)
+            st.markdown('<span style="font-size:.6rem;color:#3d5470;letter-spacing:1px;">CIUTKAN</span>', unsafe_allow_html=True)
 
-    st.markdown(
-        '<div style="border-bottom:1px solid rgba(0,212,255,0.12);margin:.5rem 0;"></div>',
-        unsafe_allow_html=True)
+    st.markdown('<div style="border-bottom:1px solid rgba(0,212,255,0.1);margin:.4rem 0;"></div>', unsafe_allow_html=True)
+
+    MENU = [
+        (None,"EVALUASI"),("home","Dashboard Utama"),("iso9001","ISO 9001"),
+        ("iatf","IATF 16949"),("lifecycle","Engineering Lifecycle"),
+        ("consistency","Konsistensi Mutu"),("batch","Evaluasi Batch"),
+        (None,"ANALISIS"),("iqscore","Integrated Quality Score"),
+        ("maung","Analisis Mutu MAUNG MV3"),("whatif","Simulasi What-If"),
+        ("hipotesis","Kesimpulan & Hipotesis"),("interview","Data Wawancara"),
+        (None,"PLATFORM"),("about","About Platform"),("theory","Teori & Referensi"),
+        ("users","Manajemen User"),("settings","Pengaturan Platform"),
+    ]
 
     if not wide:
-        # ── Compact mode: icons only ───────────────────────
-        compact = [
-            ("🏠","home"),("📊","iso9001"),("🏭","iatf"),("⚙️","lifecycle"),
-            ("✅","consistency"),("📦","batch"),("🎯","iqscore"),("🚗","maung"),
-            ("🔮","whatif"),("🏆","hipotesis"),("💬","interview"),
-            ("👤","about"),("📚","theory"),
-        ]
-        if is_admin():
-            compact += [("👥","users"),("🔧","settings")]
-
-        if 'page' not in st.session_state:
-            st.session_state.page = 'home'
-
-        for ico, pid in compact:
-            active = st.session_state.page == pid
-            if st.button(ico, key=f"sbc_{pid}", use_container_width=True,
-                         type="primary" if active else "secondary",
-                         help=pid.replace("_"," ").upper()):
-                st.session_state.page = pid
-                st.rerun()
-        st.markdown("---")
-        if st.button("🚪", use_container_width=True, help="Logout"):
-            logout()
-
+        ICONS={"home":"⌂","iso9001":"①","iatf":"②","lifecycle":"③","consistency":"④","batch":"⑤","iqscore":"⑥","maung":"⑦","whatif":"⑧","hipotesis":"⑨","interview":"⑩","about":"◉","theory":"◎","users":"◈","settings":"◇"}
+        for pid,label in [(p,l) for p,l in MENU if p]:
+            if pid in ["users","settings"] and not is_admin(): continue
+            if st.button(ICONS.get(pid,"·"), key=f"sbc_{pid}", use_container_width=True, help=label, type="primary" if st.session_state.page==pid else "secondary"):
+                st.session_state.page=pid; st.rerun()
     else:
-        # ── Full sidebar ───────────────────────────────────
-        # Brand
-        st.markdown(f"""
-        <div style="text-align:center; padding:.5rem 0 1rem;
-                    border-bottom:1px solid rgba(0,212,255,0.15); margin-bottom:.75rem;">
-            <div style="font-size:1.6rem; margin-bottom:.2rem;">⚙️</div>
-            <div style="font-family:'Rajdhani',sans-serif; font-size:1rem; font-weight:700;
-                        color:{accent}; letter-spacing:2px;">IQLE PLATFORM</div>
-            <div style="font-size:.58rem; color:#4a6fa5; letter-spacing:2px;
-                        text-transform:uppercase; margin-top:2px;">PT Pindad (Persero)</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f'<div style="padding:.4rem 0 .6rem;text-align:center;"><div style="font-family:Rajdhani;font-size:1rem;font-weight:700;color:{accent};letter-spacing:2px;">IQLE PLATFORM</div><div style="font-size:.58rem;color:#3d5470;letter-spacing:2px;text-transform:uppercase;">PT Pindad</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="padding:.4rem .7rem;margin-bottom:.5rem;background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.12);border-radius:7px;"><div style="font-size:.58rem;color:#3d5470;text-transform:uppercase;letter-spacing:1px;">Logged in as</div><div style="font-family:Rajdhani;font-size:.88rem;font-weight:600;color:#e8edf5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{user.get("full_name") or user.get("username","")}</div><div style="font-size:.6rem;color:{"#00d4ff" if role=="admin" else "#ffd700"};text-transform:uppercase;">{"ADMIN" if role=="admin" else "VIEWER"}</div></div>', unsafe_allow_html=True)
 
-        # User badge
-        st.markdown(f"""
-        <div style="padding:.5rem .75rem; margin-bottom:.75rem;
-                    background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15);
-                    border-radius:8px;">
-            <div style="font-size:.58rem; color:#4a6fa5; letter-spacing:1px;
-                        text-transform:uppercase; margin-bottom:2px;">Logged in as</div>
-            <div style="font-family:'Rajdhani',sans-serif; font-size:.88rem;
-                        font-weight:600; color:#e8edf5; white-space:nowrap;
-                        overflow:hidden; text-overflow:ellipsis;">
-                {user.get('full_name') or user.get('username','User')}
-            </div>
-            <div style="font-size:.6rem; letter-spacing:1px; text-transform:uppercase;
-                        color:{'#00d4ff' if role=='admin' else '#ffd700'}; margin-top:1px;">
-                {'🔑 ADMIN' if role=='admin' else '👁 VIEWER'}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if 'page' not in st.session_state:
-            st.session_state.page = 'home'
-
-        menus = [
-            ("── EVALUASI ──────", None),
-            ("🏠  Dashboard Utama",         "home"),
-            ("📊  ISO 9001",                "iso9001"),
-            ("🏭  IATF 16949",              "iatf"),
-            ("⚙️  Engineering Lifecycle",   "lifecycle"),
-            ("✅  Konsistensi Mutu",         "consistency"),
-            ("📦  Evaluasi Batch",           "batch"),
-            ("── ANALISIS ──────", None),
-            ("🎯  Integrated Quality Score", "iqscore"),
-            ("🚗  Analisis Mutu MAUNG MV3",  "maung"),
-            ("🔮  Simulasi What-If",          "whatif"),
-            ("🏆  Kesimpulan & Hipotesis",    "hipotesis"),
-            ("💬  Data Wawancara",            "interview"),
-            ("── PLATFORM ──────", None),
-            ("👤  About Platform",            "about"),
-            ("📚  Teori & Referensi",         "theory"),
-            ("👥  Manajemen User",            "users"),
-            ("🔧  Pengaturan Platform",       "settings"),
-        ]
-
-        for label, pid in menus:
+        p = st.session_state.page
+        for pid,label in MENU:
             if pid is None:
-                st.markdown(
-                    f'<div style="font-size:.58rem;color:#2a3f55;letter-spacing:2px;'
-                    f'padding:.3rem .25rem .1rem;font-family:Rajdhani;">{label}</div>',
-                    unsafe_allow_html=True)
+                st.markdown(f'<div style="font-size:.58rem;color:#2a3f55;letter-spacing:2px;text-transform:uppercase;padding:.3rem .2rem .1rem;font-family:Rajdhani;">{label}</div>', unsafe_allow_html=True)
                 continue
-            if pid in ["users","settings"] and not is_admin():
-                continue
-            active = st.session_state.page == pid
-            if st.button(label, key=f"nav_{pid}", use_container_width=True,
-                         type="primary" if active else "secondary"):
-                st.session_state.page = pid
-                st.rerun()
+            if pid in ["users","settings"] and not is_admin(): continue
+            if st.button(label, key=f"nav_{pid}", use_container_width=True, type="primary" if p==pid else "secondary"):
+                st.session_state.page=pid; st.rerun()
 
-        st.markdown("---")
-        if st.button("🚪  Logout", use_container_width=True):
-            logout()
+    st.markdown("---")
+    if st.button("Logout", use_container_width=True): logout()
 
-        st.markdown("""
-        <div style="margin-top:.5rem;padding:.4rem;text-align:center;
-                    font-size:.58rem;color:#1e2d42;font-family:'JetBrains Mono',monospace;">
-            v2.0 · Railway · PostgreSQL
-        </div>""", unsafe_allow_html=True)
+# Top navbar pills
+p_cur = st.session_state.page
+NAV = [("Dashboard","home"),("ISO 9001","iso9001"),("IATF 16949","iatf"),
+       ("Lifecycle","lifecycle"),("Konsistensi","consistency"),("Batch","batch"),
+       ("IQ Score","iqscore"),("MAUNG MV3","maung"),("What-If","whatif"),
+       ("Hipotesis","hipotesis"),("Wawancara","interview"),("About","about")]
 
+pills = "".join(f'<span class="nav-pill{" active" if p_cur==pid else ""}">{name}</span>' for name,pid in NAV)
+st.markdown(f'<div class="top-navbar">{pills}</div>', unsafe_allow_html=True)
 
-# ── Top Navigation Bar (above header) ─────────────────────
-p_cur = st.session_state.get('page', 'home')
-
-NAV_ITEMS = [
-    ("🏠", "Dashboard",  "home"),
-    ("📊", "ISO 9001",   "iso9001"),
-    ("🏭", "IATF",       "iatf"),
-    ("⚙️", "Lifecycle",  "lifecycle"),
-    ("✅", "Konsistensi","consistency"),
-    ("📦", "Batch",      "batch"),
-    ("🎯", "IQ Score",   "iqscore"),
-    ("🚗", "MAUNG",      "maung"),
-    ("🔮", "What-If",    "whatif"),
-    ("🏆", "Hipotesis",  "hipotesis"),
-    ("💬", "Wawancara",  "interview"),
-    ("👤", "About",      "about"),
-]
-
-# Nav bar CSS
-st.markdown("""
-<style>
-div[data-testid="stHorizontalBlock"] > div[data-testid="column"] > div > div > button {
-    padding: .2rem .1rem !important;
-    font-size: .65rem !important;
-    font-family: Rajdhani, sans-serif !important;
-    font-weight: 600 !important;
-    letter-spacing: .5px !important;
-    border-radius: 4px !important;
-    min-height: 2rem !important;
-    line-height: 1.2 !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-nav_cols = st.columns(len(NAV_ITEMS))
-for i, (ico, name, pid) in enumerate(NAV_ITEMS):
+# Invisible functional buttons
+nav_cols = st.columns(len(NAV))
+for i,(name,pid) in enumerate(NAV):
     with nav_cols[i]:
-        active = p_cur == pid
-        label  = f"{ico}\n{name}"
-        if st.button(label, key=f"tnav_{pid}",
-                     use_container_width=True,
-                     type="primary" if active else "secondary"):
-            st.session_state.page = pid
-            st.rerun()
+        st.markdown('<div style="margin-top:-2.6rem;height:2.2rem;overflow:hidden;">', unsafe_allow_html=True)
+        if st.button(name, key=f"tnav_{pid}", use_container_width=True):
+            st.session_state.page=pid; st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown(
-    '<div style="border-bottom:1px solid rgba(0,212,255,0.12);'
-    'margin-bottom:.25rem;"></div>',
-    unsafe_allow_html=True
-)
-
-# ── Render Header ──────────────────────────────────────────
 render_header()
 
-# ── Page routing ───────────────────────────────────────────
 p = st.session_state.page
-
-if   p == "home":        from modules.pg_home        import show
-elif p == "iso9001":     from modules.pg_iso9001     import show
-elif p == "iatf":        from modules.pg_iatf        import show
-elif p == "lifecycle":   from modules.pg_lifecycle   import show
-elif p == "consistency": from modules.pg_consistency import show
-elif p == "batch":       from modules.pg_batch       import show
-elif p == "iqscore":     from modules.pg_iqscore     import show
-elif p == "maung":       from modules.pg_maung      import show
-elif p == "whatif":      from modules.pg_whatif     import show
-elif p == "hipotesis":   from modules.pg_hipotesis  import show
-elif p == "interview":   from modules.pg_interview   import show
-elif p == "about":       from modules.pg_about       import show
-elif p == "theory":      from modules.pg_theory      import show
-elif p == "users":       from modules.pg_users       import show
-elif p == "settings":    from modules.pg_settings    import show
-else:                    from modules.pg_home        import show
+if   p=="home":        from modules.pg_home        import show
+elif p=="iso9001":     from modules.pg_iso9001     import show
+elif p=="iatf":        from modules.pg_iatf        import show
+elif p=="lifecycle":   from modules.pg_lifecycle   import show
+elif p=="consistency": from modules.pg_consistency import show
+elif p=="batch":       from modules.pg_batch       import show
+elif p=="iqscore":     from modules.pg_iqscore     import show
+elif p=="maung":       from modules.pg_maung       import show
+elif p=="whatif":      from modules.pg_whatif      import show
+elif p=="hipotesis":   from modules.pg_hipotesis   import show
+elif p=="interview":   from modules.pg_interview   import show
+elif p=="about":       from modules.pg_about       import show
+elif p=="theory":      from modules.pg_theory      import show
+elif p=="users":       from modules.pg_users       import show
+elif p=="settings":    from modules.pg_settings    import show
+else:                  from modules.pg_home        import show
 
 show()
-
-# ── Render Footer ──────────────────────────────────────────
 render_footer()
