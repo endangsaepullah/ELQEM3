@@ -96,6 +96,7 @@ def _active_group(pid):
             return grp
     return "Evaluasi"
 
+p_cur      = st.session_state.get('page', 'home')
 active_grp = _active_group(p_cur)
 
 # CSS: hide ALL st.radio/selectbox default styling
