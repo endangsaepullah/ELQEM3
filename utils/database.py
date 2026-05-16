@@ -180,6 +180,13 @@ def init_database():
             source TEXT DEFAULT 'MoM',
             created_at TIMESTAMP DEFAULT NOW()
         )""",
+        """CREATE TABLE IF NOT EXISTS pls_results (
+            id SERIAL PRIMARY KEY,
+            key TEXT UNIQUE NOT NULL,
+            value TEXT,
+            label TEXT,
+            updated_at TIMESTAMP DEFAULT NOW()
+        )""",
                 """CREATE TABLE IF NOT EXISTS maung_defects (
             id SERIAL PRIMARY KEY,
             batch TEXT NOT NULL,
@@ -242,3 +249,66 @@ def get_lifecycle_maturity(score):
     elif score >= 60: return "Defined"
     elif score >= 40: return "Developing"
     else:             return "Initial"
+
+
+# ── PLS-SEM Result Helpers ─────────────────────────────────
+
+PLS_DEFAULTS = {
+    # Hipotesis
+    "h1_beta":   ("0.318", "β ISO 9001 → Y"),
+    "h1_tstat":  ("3.847", "T-Statistik H1"),
+    "h1_pval":   ("0.001", "P-Value H1"),
+    "h1_status": ("Diterima", "Status H1"),
+    "h2_beta":   ("0.217", "β IATF 16949 → Y"),
+    "h2_tstat":  ("2.913", "T-Statistik H2"),
+    "h2_pval":   ("0.004", "P-Value H2"),
+    "h2_status": ("Diterima", "Status H2"),
+    "h3_beta":   ("0.532", "β Engineering Lifecycle → Y"),
+    "h3_tstat":  ("6.124", "T-Statistik H3"),
+    "h3_pval":   ("0.000", "P-Value H3"),
+    "h3_status": ("Diterima", "Status H3"),
+    # Model fit
+    "model_r2":  ("0.729", "R² (Koefisien Determinasi)"),
+    "model_q2":  ("0.548", "Q² (Predictive Relevance)"),
+    # Validitas & Reliabilitas
+    "ave_x1":    ("0.624", "AVE X1 ISO 9001"),
+    "ave_x2":    ("0.587", "AVE X2 IATF 16949"),
+    "ave_x3":    ("0.671", "AVE X3 Engineering Lifecycle"),
+    "ave_y":     ("0.612", "AVE Y Konsistensi Mutu"),
+    "cr_x1":     ("0.891", "CR X1"),
+    "cr_x2":     ("0.857", "CR X2"),
+    "cr_x3":     ("0.908", "CR X3"),
+    "cr_y":      ("0.884", "CR Y"),
+    "ca_x1":     ("0.852", "Cronbach Alpha X1"),
+    "ca_x2":     ("0.801", "Cronbach Alpha X2"),
+    "ca_x3":     ("0.876", "Cronbach Alpha X3"),
+    "ca_y":      ("0.841", "Cronbach Alpha Y"),
+    # Status data
+    "data_status": ("Dummy — Menunggu Data Riil Kuesioner", "Status Data"),
+    "n_responden": ("0", "Jumlah Responden"),
+    "periode":     ("-", "Periode Pengumpulan Data"),
+}
+
+
+def get_pls(key):
+    """Get PLS result value, fallback to default."""
+    row = fetchone("SELECT value FROM pls_results WHERE key=%s", (key,))
+    if row and row.get('value'):
+        return row['value']
+    return PLS_DEFAULTS.get(key, ("", ""))[0]
+
+
+def set_pls(key, value):
+    """Upsert PLS result value."""
+    label = PLS_DEFAULTS.get(key, ("", key))[1]
+    run("""INSERT INTO pls_results (key, value, label)
+           VALUES (%s,%s,%s)
+           ON CONFLICT(key) DO UPDATE SET value=EXCLUDED.value, updated_at=NOW()""",
+        (key, value, label))
+
+
+def get_pls_float(key):
+    try:
+        return float(get_pls(key))
+    except Exception:
+        return 0.0
