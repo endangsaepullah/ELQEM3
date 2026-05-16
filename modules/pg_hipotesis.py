@@ -112,7 +112,7 @@ def show():
             "Konsistensi\nMutu (Y)":        "#ffd700",
         }
 
-        # Draw arrows
+        # Draw arrows using pixel coordinates (axref/ayref="pixel")
         arrow_specs = [
             (0.1, 0.85, "#00d4ff", "β=0.318***"),
             (0.1, 0.50, "#0066ff", "β=0.217**"),
@@ -120,20 +120,21 @@ def show():
         ]
         for (x_start, y_start, c, label) in arrow_specs:
             fig.add_annotation(
-                x=0.72, y=0.50, ax=x_start+0.18, ay=y_start,
-                xref="paper", yref="paper", axref="paper", ayref="paper",
-                arrowhead=2, arrowsize=1.2, arrowwidth=2.5, arrowcolor=c,
-                text="", showarrow=True
+                x=0.72, y=y_start,
+                xref="paper", yref="paper",
+                ax=0.28, ay=y_start,
+                axref="paper", ayref="paper",
+                arrowhead=2, arrowsize=1.2, arrowwidth=2,
+                arrowcolor=c, text="", showarrow=True
             )
-            mid_x = (x_start + 0.18 + 0.72) / 2
-            mid_y = (y_start + 0.50) / 2
+            mid_x = (0.28 + 0.72) / 2
             fig.add_annotation(
-                x=mid_x, y=mid_y + 0.04,
+                x=mid_x, y=y_start + 0.06,
                 xref="paper", yref="paper",
                 text=f"<b>{label}</b>",
                 showarrow=False,
-                font=dict(color=c, size=11, family="Rajdhani"),
-                bgcolor="rgba(13,19,33,0.8)"
+                font=dict(color=c, size=10, family="Rajdhani"),
+                bgcolor="rgba(13,19,33,0.85)", borderpad=2
             )
 
         # Draw boxes
@@ -145,19 +146,19 @@ def show():
                 fillcolor=bc+"22", line=dict(color=bc, width=2),
             )
             fig.add_annotation(
-                x=bx+0.09, y=by+0.03,
+                x=bx+0.09, y=by+0.04,
                 xref="paper", yref="paper",
                 text=f"<b>{name}</b>",
                 showarrow=False,
-                font=dict(color=bc, size=11 if is_y else 10, family="Rajdhani"),
+                font=dict(color=bc, size=10 if is_y else 9, family="Rajdhani"),
                 align="center"
             )
             fig.add_annotation(
-                x=bx+0.09, y=by-0.07,
+                x=bx+0.09, y=by-0.06,
                 xref="paper", yref="paper",
                 text=extra,
                 showarrow=False,
-                font=dict(color=bc, size=10),
+                font=dict(color=bc, size=9),
                 align="center"
             )
 
