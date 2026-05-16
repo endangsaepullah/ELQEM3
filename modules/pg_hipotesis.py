@@ -1,24 +1,68 @@
 import streamlit as st
 import plotly.graph_objects as go
-from utils.database import fetch, qdf
+from utils.database import fetch, qdf, get_pls, get_pls_float
 from utils.styles import section_header, plotly_layout
 
 
-COEF  = {"X1": 0.318, "X2": 0.217, "X3": 0.532}
-TSTAT = {"X1": 3.847, "X2": 2.913, "X3": 6.124}
-PVAL  = {"X1": 0.001, "X2": 0.004, "X3": 0.000}
-R2    = 0.729
-Q2    = 0.548
-AVE   = {"X1": 0.624, "X2": 0.587, "X3": 0.671, "Y": 0.612}
-CR    = {"X1": 0.891, "X2": 0.857, "X3": 0.908, "Y": 0.884}
-CA    = {"X1": 0.852, "X2": 0.801, "X3": 0.876, "Y": 0.841}
+# Values loaded from database (can be updated via Settings → PLS-SEM Input)
+def _load_pls():
+    return {
+        "COEF":  {"X1": get_pls_float("h1_beta"),  "X2": get_pls_float("h2_beta"),  "X3": get_pls_float("h3_beta")},
+        "TSTAT": {"X1": get_pls_float("h1_tstat"), "X2": get_pls_float("h2_tstat"), "X3": get_pls_float("h3_tstat")},
+        "PVAL":  {"X1": get_pls_float("h1_pval"),  "X2": get_pls_float("h2_pval"),  "X3": get_pls_float("h3_pval")},
+        "R2":     get_pls_float("model_r2"),
+        "Q2":     get_pls_float("model_q2"),
+        "AVE":   {"X1": get_pls_float("ave_x1"), "X2": get_pls_float("ave_x2"),
+                  "X3": get_pls_float("ave_x3"), "Y":  get_pls_float("ave_y")},
+        "CR":    {"X1": get_pls_float("cr_x1"),  "X2": get_pls_float("cr_x2"),
+                  "X3": get_pls_float("cr_x3"),  "Y":  get_pls_float("cr_y")},
+        "CA":    {"X1": get_pls_float("ca_x1"),  "X2": get_pls_float("ca_x2"),
+                  "X3": get_pls_float("ca_x3"),  "Y":  get_pls_float("ca_y")},
+        "STATUS": {
+            "H1": get_pls("h1_status") or "Diterima",
+            "H2": get_pls("h2_status") or "Diterima",
+            "H3": get_pls("h3_status") or "Diterima",
+        },
+        "data_status": get_pls("data_status") or "Dummy",
+        "n_resp":      get_pls("n_responden") or "0",
+        "periode":     get_pls("periode") or "-",
+    }
 
 
 def show():
+    pls = _load_pls()
+    COEF   = pls["COEF"]
+    TSTAT  = pls["TSTAT"]
+    PVAL   = pls["PVAL"]
+    R2     = pls["R2"]
+    Q2     = pls["Q2"]
+    AVE    = pls["AVE"]
+    CR     = pls["CR"]
+    CA     = pls["CA"]
+    STATUS = pls["STATUS"]
+
     section_header(
         "Kesimpulan & Hipotesis",
         "Hasil Uji Hipotesis & Validasi Model Struktural PLS-SEM",
         "🏆"
+    )
+
+    # ── Data status banner ────────────────────────────────
+    ds = pls["data_status"]
+    is_dummy = "Dummy" in ds
+    banner_color = "#ff6b35" if is_dummy else "#00ff88"
+    banner_bg    = "rgba(255,107,53,0.08)" if is_dummy else "rgba(0,255,136,0.08)"
+    st.markdown(
+        f'<div style="padding:.65rem 1rem;background:{banner_bg};'
+        f'border:1px solid {banner_color}44;border-radius:8px;margin-bottom:1rem;'
+        f'display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">' 
+        f'<div><span style="font-size:.7rem;color:{banner_color};font-weight:700;">'
+        f'{"⚠️ DATA DUMMY" if is_dummy else "✅ DATA RIIL"}</span>'
+        f'<span style="font-size:.75rem;color:#7a9bb5;margin-left:.75rem;">{ds}</span></div>'
+        f'<div style="font-size:.72rem;color:#4a6fa5;">'
+        f'n={pls["n_resp"]} responden &nbsp;·&nbsp; {pls["periode"]}'
+        f'</div></div>',
+        unsafe_allow_html=True
     )
 
     # ── Status hipotesis ───────────────────────────────────
@@ -26,17 +70,17 @@ def show():
 
     hipotesis = [
         ("H1", "ISO 9001 (X1)", "Konsistensi Mutu (Y)",
-         0.318, 3.847, 0.001, True,
+         COEF["X1"], TSTAT["X1"], PVAL["X1"], STATUS["H1"]=="Diterima",
          "ISO 9001 berpengaruh signifikan positif terhadap konsistensi mutu "
          "produksi MAUNG MV3 di PT Pindad. Process documentation dan corrective "
          "action menjadi sub-variabel terkuat."),
         ("H2", "IATF 16949 (X2)", "Konsistensi Mutu (Y)",
-         0.217, 2.913, 0.004, True,
+         COEF["X2"], TSTAT["X2"], PVAL["X2"], STATUS["H2"]=="Diterima",
          "IATF 16949 berpengaruh signifikan positif terhadap konsistensi mutu. "
          "Defect prevention dan supplier quality management terbukti berkontribusi "
          "pada penurunan variasi antar batch."),
         ("H3", "Engineering Lifecycle (X3)", "Konsistensi Mutu (Y)",
-         0.532, 6.124, 0.000, True,
+         COEF["X3"], TSTAT["X3"], PVAL["X3"], STATUS["H3"]=="Diterima",
          "Engineering Lifecycle berpengaruh dominan terhadap konsistensi mutu "
          "(β=0.532, t=6.124, p<0.001). Change control dan traceability adalah "
          "sub-variabel paling kritis — dibuktikan oleh recurring issues di MAUNG MV3."),

@@ -4,24 +4,27 @@ import numpy as np
 from utils.styles import section_header, plotly_layout
 
 
-# Koefisien jalur PLS-SEM dari hasil penelitian
-COEF = {"X1": 0.318, "X2": 0.217, "X3": 0.532}
-R2   = 0.729
-INTERCEPT = 100 * (1 - sum(COEF.values()))  # baseline
+def _get_coef():
+    return {
+        "X1": get_pls_float("h1_beta") or 0.318,
+        "X2": get_pls_float("h2_beta") or 0.217,
+        "X3": get_pls_float("h3_beta") or 0.532,
+    }
 
-# Nilai aktual dari evaluasi platform (rata-rata)
 BASELINE = {"X1": 74.2, "X2": 71.8, "X3": 68.5}
 
 
 def predict_y(x1, x2, x3):
-    raw = COEF["X1"]*x1 + COEF["X2"]*x2 + COEF["X3"]*x3
-    # Normalize ke skala 0-100
+    COEF = _get_coef()
+    raw  = COEF["X1"]*x1 + COEF["X2"]*x2 + COEF["X3"]*x3
     base = COEF["X1"]*BASELINE["X1"] + COEF["X2"]*BASELINE["X2"] + COEF["X3"]*BASELINE["X3"]
     y = 70 + (raw - base) * (30 / (sum(COEF.values()) * 100 * 0.3))
     return round(min(100, max(0, y)), 2)
 
 
 def show():
+    COEF = _get_coef()
+    R2   = get_pls_float("model_r2") or 0.729
     section_header(
         "Simulasi What-If",
         "Prediksi Konsistensi Mutu Berbasis Model PLS-SEM",
