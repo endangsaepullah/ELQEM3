@@ -33,59 +33,65 @@ role = st.session_state.get('role', 'viewer')
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
-# Nav + layout CSS
+# Global CSS + hamburger
 st.markdown(f"""
 <style>
-/* Full width layout */
-.stMainBlockContainer, .block-container {{
-    max-width:100% !important;
-    padding-left:1.5rem !important;
-    padding-right:1.5rem !important;
-    padding-top:0 !important;
+.stMainBlockContainer,.block-container{{max-width:100%!important;padding:0 1.5rem!important;}}
+[data-testid="stSidebarCollapsedControl"]{{display:none!important;}}
+header[data-testid="stHeader"]{{display:none!important;}}
+
+/* Hamburger */
+.hbg{{display:none;position:fixed;top:10px;right:12px;z-index:9999;
+    background:{accent};color:#000;border:none;border-radius:5px;
+    width:36px;height:36px;cursor:pointer;font-size:1.1rem;font-weight:700;
+    box-shadow:0 2px 12px rgba(0,212,255,.35);align-items:center;justify-content:center;}}
+.sbo{{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);
+    z-index:998;backdrop-filter:blur(2px);}}
+
+/* GitHub navbar */
+.ghnav{{
+    background:#0d1117;border-bottom:1px solid #21262d;
+    display:flex;align-items:stretch;gap:0;
+    overflow-x:auto;white-space:nowrap;
+    position:sticky;top:0;z-index:200;
+    -webkit-overflow-scrolling:touch;
 }}
-/* GitHub-style top navbar */
-.gh-navbar {{
-    position:sticky; top:0; z-index:200;
-    background:#0d1117;
-    border-bottom:1px solid #21262d;
-    padding:0 1.5rem;
-    display:flex; align-items:center; gap:0;
-    height:44px; overflow-x:auto;
+.ghnav-brand{{
+    display:flex;align-items:center;padding:0 1.25rem 0 1rem;
+    font-family:Rajdhani,sans-serif;font-size:.9rem;font-weight:700;
+    color:{accent};letter-spacing:2px;flex-shrink:0;
+    border-right:1px solid #21262d;
 }}
-.gh-navbar-brand {{
-    font-family:Rajdhani,sans-serif; font-size:.95rem; font-weight:700;
-    color:{accent}; letter-spacing:2px; margin-right:1.5rem;
-    white-space:nowrap; text-decoration:none; flex-shrink:0;
+.ghnav a{{
+    display:inline-flex;align-items:center;gap:.35rem;
+    padding:0 .85rem;height:48px;flex-shrink:0;
+    font-family:Inter,sans-serif;font-size:.78rem;font-weight:500;
+    color:#8b949e;text-decoration:none!important;
+    border-bottom:2px solid transparent;
+    transition:color .15s,border-color .15s;
 }}
-/* nav items handled by st.button CSS below */
-/* Mobile hamburger */
-.sb-tog-btn {{
-    display:none; position:fixed; top:8px; right:12px; z-index:9999;
-    background:{accent}; color:#000; border:none; border-radius:5px;
-    width:34px; height:34px; cursor:pointer; font-size:1rem; font-weight:700;
-    box-shadow:0 2px 12px rgba(0,212,255,0.35); line-height:1;
-}}
-.sb-overlay {{ display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:998; backdrop-filter:blur(2px); }}
-@media(max-width:768px) {{
-    .sb-tog-btn {{ display:flex !important; align-items:center; justify-content:center; }}
-    [data-testid="stSidebar"] {{
-        position:fixed !important; z-index:999 !important;
-        transform:translateX(-110%) !important; transition:transform .25s !important;
-        height:100vh !important; top:0 !important; left:0 !important;
-        min-width:260px !important; max-width:260px !important;
-        box-shadow:4px 0 24px rgba(0,0,0,0.6) !important;
+.ghnav a:hover{{color:#e6edf3;border-bottom-color:#484f58;}}
+.ghnav a.act{{color:#e6edf3;font-weight:600;border-bottom-color:{accent};}}
+.ghnav-ico{{font-size:.85rem;}}
+
+/* Sidebar mobile */
+@media(max-width:768px){{
+    .hbg{{display:flex!important;}}
+    [data-testid="stSidebar"]{{
+        position:fixed!important;z-index:999!important;
+        transform:translateX(-110%)!important;transition:transform .25s!important;
+        height:100vh!important;top:0!important;left:0!important;
+        min-width:260px!important;max-width:260px!important;
+        box-shadow:4px 0 24px rgba(0,0,0,.6)!important;
     }}
-    [data-testid="stSidebar"].sb-open {{ transform:translateX(0) !important; }}
-    .sb-overlay.sb-open {{ display:block; }}
-    .stMainBlockContainer,.block-container {{ padding:.5rem !important; }}
-    .gh-navbar {{ padding:0 .75rem; }}
-    .gh-navbar-brand {{ margin-right:.75rem; }}
+    [data-testid="stSidebar"].sbo-open{{transform:translateX(0)!important;}}
+    .sbo.sbo-open{{display:block;}}
+    .stMainBlockContainer,.block-container{{padding:.5rem!important;}}
+    .ghnav a{{padding:0 .6rem;font-size:.72rem;}}
 }}
-[data-testid="stSidebarCollapsedControl"] {{ display:none !important; }}
-header[data-testid="stHeader"] {{ display:none !important; }}
 </style>
-<button class="sb-tog-btn" onclick="(function(){{var s=document.querySelector('[data-testid=stSidebar]'),o=document.getElementById('sbo');s.classList.toggle('sb-open');o.classList.toggle('sb-open');}})()">&#9776;</button>
-<div class="sb-overlay" id="sbo" onclick="(function(){{var s=document.querySelector('[data-testid=stSidebar]'),o=document.getElementById('sbo');s.classList.remove('sb-open');o.classList.remove('sb-open');}})()"></div>
+<button class="hbg" onclick="document.querySelector('[data-testid=stSidebar]').classList.toggle('sbo-open');document.getElementById('sbo').classList.toggle('sbo-open')">&#9776;</button>
+<div class="sbo" id="sbo" onclick="document.querySelector('[data-testid=stSidebar]').classList.remove('sbo-open');document.getElementById('sbo').classList.remove('sbo-open')"></div>
 """, unsafe_allow_html=True)
 
 # Sidebar
@@ -153,39 +159,98 @@ with st.sidebar:
     st.markdown("---")
     if st.button("Logout", use_container_width=True): logout()
 
-# GitHub-style top navbar
+# GitHub-style navbar using CSS-styled st.buttons
 p_cur = st.session_state.page
-NAV = [
-    ("⌂ Dashboard",  "home"),
-    ("ISO 9001",     "iso9001"),
-    ("IATF 16949",   "iatf"),
-    ("Lifecycle",    "lifecycle"),
-    ("Konsistensi",  "consistency"),
-    ("Batch",        "batch"),
-    ("IQ Score",     "iqscore"),
-    ("MAUNG MV3",    "maung"),
-    ("What-If",      "whatif"),
-    ("Hipotesis",    "hipotesis"),
-    ("Wawancara",    "interview"),
-    ("About",        "about"),
-    ("Users",        "users"),
-    ("Settings",     "settings"),
+
+NAV_ITEMS = [
+    ("🏠", "Dashboard",  "home"),
+    ("📊", "ISO 9001",   "iso9001"),
+    ("🏭", "IATF",       "iatf"),
+    ("⚙️", "Lifecycle",  "lifecycle"),
+    ("✅", "Konsistensi","consistency"),
+    ("📦", "Batch",      "batch"),
+    ("🎯", "IQ Score",   "iqscore"),
+    ("🚗", "MAUNG",      "maung"),
+    ("🔮", "What-If",    "whatif"),
+    ("🏆", "Hipotesis",  "hipotesis"),
+    ("💬", "Wawancara",  "interview"),
+    ("👤", "About",      "about"),
 ]
+if is_admin():
+    NAV_ITEMS += [("👥","Users","users"),("🔧","Settings","settings")]
 
-# GitHub navbar brand bar
-st.markdown(f'<div class="gh-navbar"><span class="gh-brand">⚙ IQLE PLATFORM</span></div>', unsafe_allow_html=True)
+# CSS to transform st.buttons into GitHub tabs
+st.markdown(f"""
+<style>
+/* Wrap the nav row */
+.nav-wrap {{
+    background:#0d1117;
+    border-bottom:1px solid #21262d;
+    display:flex; align-items:center;
+    padding:0; margin-bottom:.5rem;
+    overflow-x:auto; overflow-y:hidden;
+    position:sticky; top:0; z-index:200;
+    gap:0;
+}}
+/* Brand in nav */
+.nav-wrap .nav-brand {{
+    font-family:Rajdhani,sans-serif; font-size:.9rem; font-weight:700;
+    color:{accent}; letter-spacing:2px; padding:0 1rem 0 .75rem;
+    border-right:1px solid #21262d; white-space:nowrap;
+    height:48px; display:flex; align-items:center; flex-shrink:0;
+}}
+/* Override ALL buttons inside .nav-wrap */
+.nav-wrap div[data-testid="column"] {{
+    min-width:fit-content !important; padding:0 !important; flex:0 !important;
+}}
+.nav-wrap div[data-testid="column"] > div > div > div > button {{
+    background:transparent !important;
+    border:none !important;
+    border-bottom:2px solid transparent !important;
+    border-radius:0 !important;
+    color:#8b949e !important;
+    font-family:Inter,sans-serif !important;
+    font-size:.77rem !important;
+    font-weight:500 !important;
+    height:48px !important;
+    padding:0 .75rem !important;
+    box-shadow:none !important;
+    white-space:nowrap !important;
+    width:auto !important;
+    transition:color .15s, border-color .15s !important;
+    letter-spacing:.2px !important;
+}}
+.nav-wrap div[data-testid="column"] > div > div > div > button:hover {{
+    color:#e6edf3 !important;
+    background:rgba(255,255,255,0.04) !important;
+    border-bottom-color:#484f58 !important;
+}}
+.nav-wrap div[data-testid="column"] > div > div > div > button[kind="primary"] {{
+    color:#e6edf3 !important;
+    font-weight:600 !important;
+    border-bottom-color:{accent} !important;
+    background:transparent !important;
+}}
+@media(max-width:768px) {{
+    .nav-wrap .nav-brand {{ padding:0 .6rem; font-size:.8rem; }}
+    .nav-wrap div[data-testid="column"] > div > div > div > button {{
+        padding:0 .4rem !important; font-size:.68rem !important;
+    }}
+}}
+</style>
+""", unsafe_allow_html=True)
 
-# Filter nav by role
-visible_nav = [(n,p) for n,p in NAV if p not in ["users","settings"] or is_admin()]
-
-nav_cols = st.columns(len(visible_nav))
-for i, (name, pid) in enumerate(visible_nav):
-    with nav_cols[i]:
-        active = p_cur == pid
-        if st.button(name, key=f"gnav_{pid}", use_container_width=True,
-                     type="primary" if active else "secondary"):
-            st.session_state.page = pid
+st.markdown('<div class="nav-wrap"><div class="nav-brand">⚙ IQLE</div>', unsafe_allow_html=True)
+_ncols = st.columns(len(NAV_ITEMS))
+for _i, (_ico, _name, _pid) in enumerate(NAV_ITEMS):
+    with _ncols[_i]:
+        _label = f"{_ico} {_name}"
+        if st.button(_label, key=f"gnav_{_pid}",
+                     use_container_width=False,
+                     type="primary" if p_cur==_pid else "secondary"):
+            st.session_state.page = _pid
             st.rerun()
+st.markdown('</div>', unsafe_allow_html=True)
 
 render_header()
 
