@@ -50,27 +50,14 @@ st.markdown(f"""
     border-bottom:1px solid #21262d;
     padding:0 1.5rem;
     display:flex; align-items:center; gap:0;
-    height:48px; overflow-x:auto;
+    height:44px; overflow-x:auto;
 }}
 .gh-navbar-brand {{
     font-family:Rajdhani,sans-serif; font-size:.95rem; font-weight:700;
     color:{accent}; letter-spacing:2px; margin-right:1.5rem;
     white-space:nowrap; text-decoration:none; flex-shrink:0;
 }}
-.gh-nav-item {{
-    display:flex; align-items:center; gap:.35rem;
-    font-family:Inter,sans-serif; font-size:.78rem; font-weight:500;
-    color:#8b949e; text-decoration:none !important;
-    padding:0 .75rem; height:48px;
-    border-bottom:2px solid transparent;
-    white-space:nowrap; transition:color .15s;
-    flex-shrink:0;
-}}
-.gh-nav-item:hover {{ color:#e6edf3; border-bottom-color:#484f58; }}
-.gh-nav-item.active {{
-    color:#e6edf3; font-weight:600;
-    border-bottom-color:{accent};
-}}
+/* nav items handled by st.button CSS below */
 /* Mobile hamburger */
 .sb-tog-btn {{
     display:none; position:fixed; top:8px; right:12px; z-index:9999;
@@ -152,45 +139,73 @@ with st.sidebar:
     st.markdown("---")
     if st.button("Logout", use_container_width=True): logout()
 
-# Handle nav from query params
-_qp = st.query_params.get("nav", "")
-if _qp and _qp != st.session_state.page:
-    st.session_state.page = _qp
-    st.query_params.clear()
-    st.rerun()
-
 # GitHub-style top navbar
 p_cur = st.session_state.page
 NAV = [
-    ("⌂", "Dashboard",  "home"),
-    ("",  "ISO 9001",   "iso9001"),
-    ("",  "IATF 16949", "iatf"),
-    ("",  "Lifecycle",  "lifecycle"),
-    ("",  "Konsistensi","consistency"),
-    ("",  "Batch",      "batch"),
-    ("",  "IQ Score",   "iqscore"),
-    ("",  "MAUNG MV3",  "maung"),
-    ("",  "What-If",    "whatif"),
-    ("",  "Hipotesis",  "hipotesis"),
-    ("",  "Wawancara",  "interview"),
-    ("",  "About",      "about"),
+    ("⌂ Dashboard",  "home"),
+    ("ISO 9001",     "iso9001"),
+    ("IATF 16949",   "iatf"),
+    ("Lifecycle",    "lifecycle"),
+    ("Konsistensi",  "consistency"),
+    ("Batch",        "batch"),
+    ("IQ Score",     "iqscore"),
+    ("MAUNG MV3",    "maung"),
+    ("What-If",      "whatif"),
+    ("Hipotesis",    "hipotesis"),
+    ("Wawancara",    "interview"),
+    ("About",        "about"),
 ]
 
-nav_items_html = "".join(
-    f'<a href="?nav={pid}" class="gh-nav-item{" active" if p_cur==pid else ""}"'
-    f' style="text-decoration:none !important;">' +
-    (f'<span style="font-size:.9rem;line-height:1;">{ico}</span> ' if ico else "") +
-    f'{name}</a>'
-    for ico, name, pid in NAV
-)
-
+# GitHub navbar brand
 st.markdown(
-    f'<div class="gh-navbar">'
-    f'<span class="gh-navbar-brand">⚙ IQLE</span>'
-    + nav_items_html +
-    f'</div>',
+    f'<div class="gh-navbar"><span class="gh-navbar-brand">⚙ IQLE PLATFORM</span></div>',
     unsafe_allow_html=True
 )
+
+# Nav buttons styled as GitHub tabs
+st.markdown("""
+<style>
+/* Hide default button styling for nav row */
+div[data-testid="stHorizontalBlock"]:has(> div > div > div > button[data-gh-nav]) > div {
+    padding: 0 !important;
+}
+button[data-gh-nav] {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 2px solid transparent !important;
+    border-radius: 0 !important;
+    color: #8b949e !important;
+    font-family: Inter, sans-serif !important;
+    font-size: .78rem !important;
+    font-weight: 500 !important;
+    padding: 0 .6rem !important;
+    height: 44px !important;
+    letter-spacing: .3px !important;
+    box-shadow: none !important;
+    transition: color .15s, border-color .15s !important;
+    white-space: nowrap !important;
+}
+button[data-gh-nav]:hover {
+    color: #e6edf3 !important;
+    border-bottom-color: #484f58 !important;
+}
+button[data-gh-nav].gh-active {
+    color: #e6edf3 !important;
+    font-weight: 600 !important;
+    border-bottom-color: #00d4ff !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+nav_cols = st.columns(len(NAV))
+for i, (name, pid) in enumerate(NAV):
+    with nav_cols[i]:
+        active = p_cur == pid
+        label = f"**{name}**" if active else name
+        if st.button(label, key=f"gnav_{pid}", use_container_width=True,
+                     type="primary" if active else "secondary"):
+            st.session_state.page = pid
+            st.rerun()
 
 render_header()
 
