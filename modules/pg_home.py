@@ -137,3 +137,4 @@ def show():
                              'total_defect','defect_rate','rework_rate','status']].tail(8).copy()
         show_df.columns = ['No. Batch','Tanggal','Unit','Defect','Defect Rate(%)','Rework Rate(%)','Status']
         st.dataframe(show_df, use_container_width=True, hide_index=True)
+ 
