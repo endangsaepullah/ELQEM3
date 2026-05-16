@@ -215,37 +215,59 @@ with st.sidebar:
         </div>""", unsafe_allow_html=True)
 
 
-# ── Render Header ──────────────────────────────────────────
-render_header()
-
-# ── Top nav bar (visible on all screen sizes) ──────────────
+# ── Top Navigation Bar (above header) ─────────────────────
 p_cur = st.session_state.get('page', 'home')
-nav_items = [
-    ("🏠","home"),("📊","ISO 9001","iso9001"),("🏭","IATF","iatf"),
-    ("⚙️","Lifecycle","lifecycle"),("✅","Konsistensi","consistency"),
-    ("📦","Batch","batch"),("🎯","IQ Score","iqscore"),("🚗","MAUNG","maung"),
-    ("🔮","What-If","whatif"),("🏆","Hipotesis","hipotesis"),
-    ("💬","Wawancara","interview"),("👤","About","about"),
+
+NAV_ITEMS = [
+    ("🏠", "Dashboard",  "home"),
+    ("📊", "ISO 9001",   "iso9001"),
+    ("🏭", "IATF",       "iatf"),
+    ("⚙️", "Lifecycle",  "lifecycle"),
+    ("✅", "Konsistensi","consistency"),
+    ("📦", "Batch",      "batch"),
+    ("🎯", "IQ Score",   "iqscore"),
+    ("🚗", "MAUNG",      "maung"),
+    ("🔮", "What-If",    "whatif"),
+    ("🏆", "Hipotesis",  "hipotesis"),
+    ("💬", "Wawancara",  "interview"),
+    ("👤", "About",      "about"),
 ]
-nav_cols = st.columns(len(nav_items))
-for i, item in enumerate(nav_items):
-    if len(item) == 2:
-        ico, pid = item; lbl = ico
-    else:
-        ico, lbl, pid = item
-    active = p_cur == pid
+
+# Nav bar CSS
+st.markdown("""
+<style>
+div[data-testid="stHorizontalBlock"] > div[data-testid="column"] > div > div > button {
+    padding: .2rem .1rem !important;
+    font-size: .65rem !important;
+    font-family: Rajdhani, sans-serif !important;
+    font-weight: 600 !important;
+    letter-spacing: .5px !important;
+    border-radius: 4px !important;
+    min-height: 2rem !important;
+    line-height: 1.2 !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+nav_cols = st.columns(len(NAV_ITEMS))
+for i, (ico, name, pid) in enumerate(NAV_ITEMS):
     with nav_cols[i]:
-        if st.button(
-            ico, key=f"topnav_{pid}",
-            use_container_width=True,
-            type="primary" if active else "secondary",
-            help=lbl if lbl != ico else pid.upper()
-        ):
+        active = p_cur == pid
+        label  = f"{ico}\n{name}"
+        if st.button(label, key=f"tnav_{pid}",
+                     use_container_width=True,
+                     type="primary" if active else "secondary"):
             st.session_state.page = pid
             st.rerun()
 
-st.markdown('<div style="border-bottom:1px solid rgba(0,212,255,0.1);margin-bottom:.75rem;"></div>',
-            unsafe_allow_html=True)
+st.markdown(
+    '<div style="border-bottom:1px solid rgba(0,212,255,0.12);'
+    'margin-bottom:.25rem;"></div>',
+    unsafe_allow_html=True
+)
+
+# ── Render Header ──────────────────────────────────────────
+render_header()
 
 # ── Page routing ───────────────────────────────────────────
 p = st.session_state.page
