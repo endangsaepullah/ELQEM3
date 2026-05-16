@@ -96,81 +96,59 @@ def show():
     col_path, col_r2 = st.columns([2, 1])
 
     with col_path:
-        fig = go.Figure()
-
-        # Variabel eksogen
-        boxes = {
-            "ISO 9001\n(X1)":              (0.1, 0.85, "#00d4ff", "β=0.318***"),
-            "IATF 16949\n(X2)":            (0.1, 0.50, "#0066ff", "β=0.217**"),
-            "Engineering\nLifecycle (X3)": (0.1, 0.15, "#00ff88", "β=0.532***"),
-            "Konsistensi\nMutu (Y)":        (0.75, 0.50, "#ffd700", f"R²={R2}"),
-        }
-        colors_map = {
-            "ISO 9001\n(X1)":              "#00d4ff",
-            "IATF 16949\n(X2)":            "#0066ff",
-            "Engineering\nLifecycle (X3)": "#00ff88",
-            "Konsistensi\nMutu (Y)":        "#ffd700",
-        }
-
-        # Draw arrows using pixel coordinates (axref/ayref="pixel")
-        arrow_specs = [
-            (0.1, 0.85, "#00d4ff", "β=0.318***"),
-            (0.1, 0.50, "#0066ff", "β=0.217**"),
-            (0.1, 0.15, "#00ff88", "β=0.532***"),
-        ]
-        for (x_start, y_start, c, label) in arrow_specs:
-            fig.add_annotation(
-                x=0.72, y=y_start,
-                xref="paper", yref="paper",
-                ax=0.28, ay=y_start,
-                axref="paper", ayref="paper",
-                arrowhead=2, arrowsize=1.2, arrowwidth=2,
-                arrowcolor=c, text="", showarrow=True
-            )
-            mid_x = (0.28 + 0.72) / 2
-            fig.add_annotation(
-                x=mid_x, y=y_start + 0.06,
-                xref="paper", yref="paper",
-                text=f"<b>{label}</b>",
-                showarrow=False,
-                font=dict(color=c, size=10, family="Rajdhani"),
-                bgcolor="rgba(13,19,33,0.85)", borderpad=2
-            )
-
-        # Draw boxes
-        for name, (bx, by, bc, extra) in boxes.items():
-            is_y = "Konsistensi" in name
-            fig.add_shape(type="rect",
-                x0=bx, y0=by-0.12, x1=bx+0.18, y1=by+0.12,
-                xref="paper", yref="paper",
-                fillcolor=bc+"22", line=dict(color=bc, width=2),
-            )
-            fig.add_annotation(
-                x=bx+0.09, y=by+0.04,
-                xref="paper", yref="paper",
-                text=f"<b>{name}</b>",
-                showarrow=False,
-                font=dict(color=bc, size=10 if is_y else 9, family="Rajdhani"),
-                align="center"
-            )
-            fig.add_annotation(
-                x=bx+0.09, y=by-0.06,
-                xref="paper", yref="paper",
-                text=extra,
-                showarrow=False,
-                font=dict(color=bc, size=9),
-                align="center"
-            )
-
-        lay = plotly_layout()
-        lay.update(
-            height=360,
-            xaxis=dict(visible=False), yaxis=dict(visible=False),
-            margin=dict(l=10, r=10, t=30, b=10),
-            title="Path Diagram PLS-SEM"
-        )
-        fig.update_layout(**lay)
-        st.plotly_chart(fig, use_container_width=True)
+        # Path diagram via SVG - no Plotly axref issues
+        st.markdown("""
+        <div style="background:#111827;border:1px solid rgba(0,212,255,0.15);border-radius:10px;padding:1rem;">
+        <div style="font-size:.65rem;color:#4a6fa5;letter-spacing:2px;text-transform:uppercase;margin-bottom:.75rem;text-align:center;">Path Diagram PLS-SEM</div>
+        <svg viewBox="0 0 520 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;font-family:Rajdhani,sans-serif;">
+          <defs>
+            <marker id="arr1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#00d4ff"/>
+            </marker>
+            <marker id="arr2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#0066ff"/>
+            </marker>
+            <marker id="arr3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+              <polygon points="0 0, 8 3, 0 6" fill="#00ff88"/>
+            </marker>
+          </defs>
+          <!-- X1 box -->
+          <rect x="10" y="10" width="130" height="55" rx="6" fill="rgba(0,212,255,0.1)" stroke="#00d4ff" stroke-width="1.5"/>
+          <text x="75" y="33" text-anchor="middle" fill="#00d4ff" font-size="11" font-weight="700">ISO 9001</text>
+          <text x="75" y="48" text-anchor="middle" fill="#00d4ff" font-size="10">(X1)</text>
+          <text x="75" y="61" text-anchor="middle" fill="#7a9bb5" font-size="8">β = 0.318 ***</text>
+          <!-- X2 box -->
+          <rect x="10" y="92" width="130" height="55" rx="6" fill="rgba(0,102,255,0.1)" stroke="#0066ff" stroke-width="1.5"/>
+          <text x="75" y="115" text-anchor="middle" fill="#0066ff" font-size="11" font-weight="700">IATF 16949</text>
+          <text x="75" y="130" text-anchor="middle" fill="#0066ff" font-size="10">(X2)</text>
+          <text x="75" y="143" text-anchor="middle" fill="#7a9bb5" font-size="8">β = 0.217 **</text>
+          <!-- X3 box -->
+          <rect x="10" y="174" width="130" height="55" rx="6" fill="rgba(0,255,136,0.1)" stroke="#00ff88" stroke-width="2"/>
+          <text x="75" y="195" text-anchor="middle" fill="#00ff88" font-size="11" font-weight="700">Eng. Lifecycle</text>
+          <text x="75" y="210" text-anchor="middle" fill="#00ff88" font-size="10">(X3) ★ DOMINAN</text>
+          <text x="75" y="223" text-anchor="middle" fill="#7a9bb5" font-size="8">β = 0.532 ***</text>
+          <!-- Y box -->
+          <rect x="360" y="82" width="148" height="75" rx="6" fill="rgba(255,215,0,0.1)" stroke="#ffd700" stroke-width="2"/>
+          <text x="434" y="110" text-anchor="middle" fill="#ffd700" font-size="11" font-weight="700">Konsistensi</text>
+          <text x="434" y="126" text-anchor="middle" fill="#ffd700" font-size="11" font-weight="700">Mutu (Y)</text>
+          <text x="434" y="142" text-anchor="middle" fill="#ffd700" font-size="10">R² = 0.729</text>
+          <text x="434" y="154" text-anchor="middle" fill="#7a9bb5" font-size="8">Q² = 0.548</text>
+          <!-- Arrows X1→Y -->
+          <line x1="140" y1="37" x2="355" y2="110" stroke="#00d4ff" stroke-width="2" marker-end="url(#arr1)"/>
+          <!-- Arrows X2→Y -->
+          <line x1="140" y1="119" x2="355" y2="119" stroke="#0066ff" stroke-width="2" marker-end="url(#arr2)"/>
+          <!-- Arrows X3→Y -->
+          <line x1="140" y1="201" x2="355" y2="130" stroke="#00ff88" stroke-width="2.5" marker-end="url(#arr3)"/>
+          <!-- Labels on arrows -->
+          <rect x="205" y="58" width="60" height="16" rx="3" fill="rgba(13,19,33,0.9)"/>
+          <text x="235" y="70" text-anchor="middle" fill="#00d4ff" font-size="9" font-weight="700">β=0.318***</text>
+          <rect x="210" y="108" width="60" height="16" rx="3" fill="rgba(13,19,33,0.9)"/>
+          <text x="240" y="120" text-anchor="middle" fill="#0066ff" font-size="9" font-weight="700">β=0.217**</text>
+          <rect x="205" y="162" width="62" height="16" rx="3" fill="rgba(13,19,33,0.9)"/>
+          <text x="236" y="174" text-anchor="middle" fill="#00ff88" font-size="9" font-weight="700">β=0.532***</text>
+        </svg>
+        </div>
+        """, unsafe_allow_html=True)
 
     with col_r2:
         st.markdown("<br>", unsafe_allow_html=True)
