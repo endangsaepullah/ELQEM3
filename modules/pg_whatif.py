@@ -2,6 +2,7 @@ import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
 from utils.styles import section_header, plotly_layout
+from utils.database import get_pls_float, get_pls
 
 
 def _get_coef():
