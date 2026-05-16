@@ -44,7 +44,6 @@ def show():
 
     with col_l:
         st.markdown("#### 🏆 Skor Evaluasi Terkini")
-        from utils.styles import section_header, score_bar, category_banner, plotly_layout, render_footer
         score_bar("📊 ISO 9001 (X1)",              iso,  "#00d4ff")
         score_bar("🏭 IATF 16949 (X2)",             iatf, "#0066ff")
         score_bar("⚙️ Eng. Lifecycle (X3) ⭐",      lc,   "#00ff88")
@@ -137,4 +136,3 @@ def show():
                              'total_defect','defect_rate','rework_rate','status']].tail(8).copy()
         show_df.columns = ['No. Batch','Tanggal','Unit','Defect','Defect Rate(%)','Rework Rate(%)','Status']
         st.dataframe(show_df, use_container_width=True, hide_index=True)
- 
