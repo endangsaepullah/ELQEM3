@@ -21,279 +21,140 @@ except Exception as e:
     st.stop()
 
 apply_global_style()
-accent = get_setting("ui_accent_color", "#00d4ff")
 
 if not st.session_state.get('logged_in'):
     from modules.pg_login import show_login
     show_login()
     st.stop()
 
-user = st.session_state.get('user', {})
-role = st.session_state.get('role', 'viewer')
+user   = st.session_state.get('user', {})
+role   = st.session_state.get('role', 'viewer')
+accent = get_setting("ui_accent_color", "#00d4ff")
+
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
-# Global CSS
-st.markdown(f"""
+# ── Global CSS ──────────────────────────────────────────────
+st.markdown("""
 <style>
-/* Full width */
-.stMainBlockContainer,.block-container{{
-    max-width:100%!important;
-    padding:0 1.5rem!important;
-    padding-top:84px!important;
-}}
-/* Hide default sidebar collapse button */
-[data-testid="stSidebarCollapsedControl"]{{display:none!important;}}
-header[data-testid="stHeader"]{{display:none!important;}}
-
-/* Sidebar mobile: hidden by default, shown when sb-open class added */
-@media(max-width:768px){{
-    [data-testid="stSidebar"]{{
-        position:fixed!important;z-index:999!important;
-        transform:translateX(-110%)!important;
-        transition:transform .25s ease!important;
-        height:100vh!important;top:0!important;left:0!important;
-        min-width:260px!important;max-width:260px!important;
-        box-shadow:4px 0 24px rgba(0,0,0,.6)!important;
-    }}
-    section[data-testid="stSidebar"].open{{
-        transform:translateX(0)!important;
-    }}
-    .stMainBlockContainer,.block-container{{padding:.5rem!important;padding-top:84px!important;}}
-}}
-
-/* nav handled by iqle-nav CSS below */
-</style>
-""", unsafe_allow_html=True)
-
-MENU_GROUPS = {
-    "Evaluasi": [
-        ("Dashboard Utama",        "home"),
-        ("ISO 9001",               "iso9001"),
-        ("IATF 16949",             "iatf"),
-        ("Engineering Lifecycle",  "lifecycle"),
-        ("Konsistensi Mutu",       "consistency"),
-        ("Evaluasi Batch",         "batch"),
-    ],
-    "Analisis": [
-        ("Integrated Quality Score","iqscore"),
-        ("Analisis Mutu MAUNG MV3", "maung"),
-        ("Simulasi What-If",        "whatif"),
-        ("Kesimpulan & Hipotesis",  "hipotesis"),
-        ("Data Wawancara",          "interview"),
-    ],
-    "Platform": [
-        ("About Platform",          "about"),
-        ("Teori & Referensi",       "theory"),
-        ("Manajemen User",          "users"),
-        ("Pengaturan Platform",     "settings"),
-    ],
+header[data-testid="stHeader"] { display:none !important; }
+.stMainBlockContainer, .block-container {
+    max-width: 100% !important;
+    padding-top: 1rem !important;
 }
-
-def _active_group(pid):
-    for grp, items in MENU_GROUPS.items():
-        if any(p == pid for _, p in items):
-            return grp
-    return "Evaluasi"
-
-p_cur      = st.session_state.get('page', 'home')
-active_grp = _active_group(p_cur)
-_uname     = user.get('full_name') or user.get('username','')
-_is_admin  = role == "admin"
-_rc        = "#00d4ff" if _is_admin else "#ffd700"
-_rl        = "ADMIN" if _is_admin else "VIEWER"
-
-# ── Simple CSS tab navbar ────────────────────────────────────
-st.markdown(f"""
-<style>
-/* Hide Streamlit default header */
-header[data-testid="stHeader"]{{display:none!important;}}
-[data-testid="stSidebarCollapsedControl"]{{display:none!important;}}
-
-/* Main content spacing */
-.stMainBlockContainer,.block-container{{
-    max-width:100%!important;
-    padding-top:0!important;
-    padding-left:1rem!important;
-    padding-right:1rem!important;
-}}
-
-/* Navbar group buttons — top level */
-div.nav-group-row > div[data-testid="column"] > div > div > div > button {{
-    background:transparent!important;
-    border:none!important;
-    border-bottom:2px solid transparent!important;
-    border-radius:0!important;
-    color:#8b949e!important;
-    font-family:Inter,sans-serif!important;
-    font-size:.82rem!important;
-    font-weight:500!important;
-    padding:0 .85rem!important;
-    height:46px!important;
-    box-shadow:none!important;
-    letter-spacing:.3px!important;
-    transition:color .15s,border-color .15s!important;
-}}
-div.nav-group-row > div[data-testid="column"] > div > div > div > button:hover {{
-    color:#e6edf3!important;
-    border-bottom-color:#484f58!important;
-    background:rgba(255,255,255,.04)!important;
-}}
-div.nav-group-row > div[data-testid="column"] > div > div > div > button[kind="primary"] {{
-    color:{accent}!important;
-    font-weight:700!important;
-    border-bottom-color:{accent}!important;
-    background:transparent!important;
-}}
-
-/* Sub-menu buttons */
-div.nav-sub-row > div[data-testid="column"] > div > div > div > button {{
-    background:transparent!important;
-    border:none!important;
-    border-bottom:2px solid transparent!important;
-    border-radius:0!important;
-    color:#6e7681!important;
-    font-family:Inter,sans-serif!important;
-    font-size:.76rem!important;
-    font-weight:400!important;
-    padding:0 .75rem!important;
-    height:36px!important;
-    box-shadow:none!important;
-    transition:color .15s,border-color .15s!important;
-}}
-div.nav-sub-row > div[data-testid="column"] > div > div > div > button:hover {{
-    color:#c9d1d9!important;
-    border-bottom-color:#484f58!important;
-    background:rgba(255,255,255,.03)!important;
-}}
-div.nav-sub-row > div[data-testid="column"] > div > div > div > button[kind="primary"] {{
-    color:#e6edf3!important;
-    font-weight:600!important;
-    border-bottom-color:{accent}!important;
-    background:transparent!important;
-}}
-
-/* Logout button */
-div.nav-logout-col > div > div > div > button {{
-    background:rgba(255,51,102,.1)!important;
-    border:1px solid rgba(255,51,102,.35)!important;
-    color:#ff3366!important;
-    font-family:Rajdhani,sans-serif!important;
-    font-size:.72rem!important;
-    font-weight:700!important;
-    padding:0 .75rem!important;
-    height:30px!important;
-    border-radius:5px!important;
-    box-shadow:none!important;
-    letter-spacing:.5px!important;
-}}
-div.nav-logout-col > div > div > div > button:hover {{
-    background:rgba(255,51,102,.22)!important;
-}}
-
-/* Nav wrappers */
-.nav-top-bar {{
-    background:#0d1117;
-    border-bottom:1px solid #21262d;
-    padding:0 .5rem;
-    display:flex; align-items:center;
-}}
-.nav-sub-bar {{
-    background:#161b22;
-    border-bottom:1px solid #21262d;
-    padding:0 .5rem;
-}}
-.nav-brand {{
-    font-family:Rajdhani,sans-serif;font-size:.9rem;font-weight:700;
-    color:{accent};letter-spacing:2px;padding:0 1rem 0 .25rem;
-    display:flex;align-items:center;height:46px;
-    border-right:1px solid #21262d;flex-shrink:0;white-space:nowrap;
-}}
-.nav-user {{
-    margin-left:auto;display:flex;align-items:center;gap:.5rem;
-    padding:0 .5rem;flex-shrink:0;font-size:.72rem;
-    color:#8b949e;font-family:Inter,sans-serif;white-space:nowrap;
-}}
-.nav-user strong{{color:#c9d1d9;}}
-.role-badge{{
-    font-family:Rajdhani;font-size:.6rem;font-weight:700;
-    letter-spacing:1px;border-radius:3px;padding:1px 5px;
-    border:1px solid currentColor;
-}}
 </style>
 """, unsafe_allow_html=True)
 
-# ── Top bar: brand + group tabs + user + logout ──────────────
-st.markdown('<div class="nav-top-bar">', unsafe_allow_html=True)
+# ── Sidebar ─────────────────────────────────────────────────
+with st.sidebar:
+    # Toggle button
+    if 'sb_open' not in st.session_state:
+        st.session_state.sb_open = True
 
-brand_col, *grp_cols, user_col, logout_col = st.columns(
-    [1] + [1.2]*len(MENU_GROUPS) + [2, 0.6]
-)
-with brand_col:
-    st.markdown(f'<div class="nav-brand">⚙ IQLE</div>', unsafe_allow_html=True)
+    if st.button("◀ Ciutkan" if st.session_state.sb_open else "▶ Buka",
+                 key="sb_toggle", use_container_width=True):
+        st.session_state.sb_open = not st.session_state.sb_open
+        st.rerun()
 
-st.markdown('<div class="nav-group-row" style="display:contents;">', unsafe_allow_html=True)
-for col, (grp, _) in zip(grp_cols, MENU_GROUPS.items()):
-    with col:
-        active = grp == active_grp
-        if st.button(grp, key=f"grp_{grp}",
+    st.markdown("---")
+
+    # Brand
+    st.markdown(f"""
+    <div style="text-align:center;padding:.5rem 0 .75rem;">
+      <div style="font-family:Rajdhani,sans-serif;font-size:1.05rem;font-weight:700;
+                  color:{accent};letter-spacing:2px;">IQLE PLATFORM</div>
+      <div style="font-size:.6rem;color:#3d5470;letter-spacing:2px;
+                  text-transform:uppercase;margin-top:2px;">PT Pindad (Persero)</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # User info
+    _rc = "#00d4ff" if role == "admin" else "#ffd700"
+    _rl = "ADMIN" if role == "admin" else "VIEWER"
+    _rd = "Akses penuh & pengaturan" if role == "admin" else "Akses baca semua modul"
+    _uname = user.get('full_name') or user.get('username', '')
+    st.markdown(f"""
+    <div style="padding:.5rem .75rem;margin-bottom:.75rem;
+                background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.12);
+                border-radius:8px;">
+      <div style="font-size:.58rem;color:#3d5470;text-transform:uppercase;
+                  letter-spacing:1px;margin-bottom:2px;">Logged in as</div>
+      <div style="font-family:Rajdhani;font-size:.9rem;font-weight:600;
+                  color:#e8edf5;overflow:hidden;text-overflow:ellipsis;
+                  white-space:nowrap;">{_uname}</div>
+      <div style="margin-top:3px;display:flex;align-items:center;gap:.4rem;">
+        <span style="font-size:.6rem;color:{_rc};font-weight:700;
+                     text-transform:uppercase;border:1px solid {_rc}44;
+                     border-radius:3px;padding:1px 5px;">{_rl}</span>
+        <span style="font-size:.58rem;color:#3d5470;">{_rd}</span>
+      </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Navigation
+    MENU = [
+        (None, "── EVALUASI ──────────"),
+        ("home",        "Dashboard Utama"),
+        ("iso9001",     "ISO 9001"),
+        ("iatf",        "IATF 16949"),
+        ("lifecycle",   "Engineering Lifecycle"),
+        ("consistency", "Konsistensi Mutu"),
+        ("batch",       "Evaluasi Batch"),
+        (None, "── ANALISIS ──────────"),
+        ("iqscore",     "Integrated Quality Score"),
+        ("maung",       "Analisis Mutu MAUNG MV3"),
+        ("whatif",      "Simulasi What-If"),
+        ("hipotesis",   "Kesimpulan & Hipotesis"),
+        ("interview",   "Data Wawancara"),
+        (None, "── PLATFORM ──────────"),
+        ("about",       "About Platform"),
+        ("theory",      "Teori & Referensi"),
+        ("users",       "Manajemen User"),
+        ("settings",    "Pengaturan Platform"),
+    ]
+
+    p = st.session_state.page
+    for pid, label in MENU:
+        if pid is None:
+            st.markdown(
+                f'<div style="font-size:.58rem;color:#2a3f55;letter-spacing:1.5px;'
+                f'padding:.4rem .1rem .1rem;font-family:Rajdhani;'
+                f'font-weight:600;">{label}</div>',
+                unsafe_allow_html=True
+            )
+            continue
+        if pid in ["users", "settings"] and not is_admin():
+            continue
+        if st.button(label, key=f"nav_{pid}",
                      use_container_width=True,
-                     type="primary" if active else "secondary"):
-            first = MENU_GROUPS[grp][0][1]
-            st.session_state.page = first
-            st.rerun()
-st.markdown('</div>', unsafe_allow_html=True)
-
-with user_col:
-    st.markdown(
-        f'<div class="nav-user">'
-        f'Halo, <strong>{_uname}</strong>'
-        f'&nbsp;<span class="role-badge" style="color:{_rc};">{_rl}</span>'
-        f'</div>',
-        unsafe_allow_html=True
-    )
-with logout_col:
-    st.markdown('<div class="nav-logout-col">', unsafe_allow_html=True)
-    if st.button("⏻ Keluar", key="nav_logout", use_container_width=True):
-        logout()
-    st.markdown('</div>', unsafe_allow_html=True)
-
-st.markdown('</div>', unsafe_allow_html=True)  # close nav-top-bar
-
-# ── Sub-menu bar ─────────────────────────────────────────────
-st.markdown('<div class="nav-sub-bar">', unsafe_allow_html=True)
-sub_items = MENU_GROUPS[active_grp]
-st.markdown('<div class="nav-sub-row">', unsafe_allow_html=True)
-sub_cols = st.columns(len(sub_items))
-for col, (lbl, pid) in zip(sub_cols, sub_items):
-    with col:
-        active = pid == p_cur
-        if st.button(lbl, key=f"sub_{pid}",
-                     use_container_width=True,
-                     type="primary" if active else "secondary"):
+                     type="primary" if p == pid else "secondary"):
             st.session_state.page = pid
             st.rerun()
-st.markdown('</div></div>', unsafe_allow_html=True)  # close nav-sub-row + nav-sub-bar
 
+    st.markdown("---")
+    if st.button("Logout", key="logout_btn", use_container_width=True):
+        logout()
 
+# ── Header + Content ────────────────────────────────────────
+render_header()
 
 p = st.session_state.page
-if   p=="home":        from modules.pg_home        import show
-elif p=="iso9001":     from modules.pg_iso9001     import show
-elif p=="iatf":        from modules.pg_iatf        import show
-elif p=="lifecycle":   from modules.pg_lifecycle   import show
-elif p=="consistency": from modules.pg_consistency import show
-elif p=="batch":       from modules.pg_batch       import show
-elif p=="iqscore":     from modules.pg_iqscore     import show
-elif p=="maung":       from modules.pg_maung       import show
-elif p=="whatif":      from modules.pg_whatif      import show
-elif p=="hipotesis":   from modules.pg_hipotesis   import show
-elif p=="interview":   from modules.pg_interview   import show
-elif p=="about":       from modules.pg_about       import show
-elif p=="theory":      from modules.pg_theory      import show
-elif p=="users":       from modules.pg_users       import show
-elif p=="settings":    from modules.pg_settings    import show
-else:                  from modules.pg_home        import show
+if   p == "home":        from modules.pg_home        import show
+elif p == "iso9001":     from modules.pg_iso9001     import show
+elif p == "iatf":        from modules.pg_iatf        import show
+elif p == "lifecycle":   from modules.pg_lifecycle   import show
+elif p == "consistency": from modules.pg_consistency import show
+elif p == "batch":       from modules.pg_batch       import show
+elif p == "iqscore":     from modules.pg_iqscore     import show
+elif p == "maung":       from modules.pg_maung       import show
+elif p == "whatif":      from modules.pg_whatif      import show
+elif p == "hipotesis":   from modules.pg_hipotesis   import show
+elif p == "interview":   from modules.pg_interview   import show
+elif p == "about":       from modules.pg_about       import show
+elif p == "theory":      from modules.pg_theory      import show
+elif p == "users":       from modules.pg_users       import show
+elif p == "settings":    from modules.pg_settings    import show
+else:                    from modules.pg_home        import show
 
 show()
 render_footer()
