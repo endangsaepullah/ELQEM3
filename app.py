@@ -1,139 +1,132 @@
+"""
+IQLE Platform — app.py
+Arsitektur: Streamlit sidebar-only navigation
+Prinsip: session_state router, tidak ada HTML/JS hack
+"""
+import importlib
 import streamlit as st
-import os
 
 st.set_page_config(
     page_title="IQLE Platform | PT Pindad",
-    page_icon="⚙️",
+    page_icon="⚙",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
-# ── Init ───────────────────────────────────────────────────
+# ── Bootstrap (cached, hanya sekali per session) ─────────────
 from utils.database import init_database, get_setting
 from utils.auth import create_default_admin, is_admin, logout
 from utils.seed_data import seed_dummy_data
 from utils.styles import apply_global_style, render_header, render_footer
 
-try:
+@st.cache_resource
+def _bootstrap():
     init_database()
     create_default_admin()
     seed_dummy_data()
+    return True
+
+try:
+    _bootstrap()
 except Exception as e:
     st.error(f"Database Error: {e}")
-    st.info("Pastikan DATABASE_URL sudah diset di Railway environment variables.")
     st.stop()
 
 apply_global_style()
 
-# ── Auth gate ──────────────────────────────────────────────
-if not st.session_state.get('logged_in'):
+# ── Auth ─────────────────────────────────────────────────────
+if not st.session_state.get("logged_in"):
     from modules.pg_login import show_login
     show_login()
     st.stop()
 
-user = st.session_state.get('user', {})
-role = st.session_state.get('role', 'viewer')
+# ── State defaults ────────────────────────────────────────────
+user   = st.session_state.get("user", {})
+role   = st.session_state.get("role", "viewer")
 accent = get_setting("ui_accent_color", "#00d4ff")
+if "page" not in st.session_state:
+    st.session_state.page = "home"
 
-# ── Sidebar ────────────────────────────────────────────────
+# ── Route registry ────────────────────────────────────────────
+PAGES = {
+    "home":        ("Dashboard Utama",          "EVALUASI", "modules.pg_home"),
+    "iso9001":     ("ISO 9001",                 "EVALUASI", "modules.pg_iso9001"),
+    "iatf":        ("IATF 16949",               "EVALUASI", "modules.pg_iatf"),
+    "lifecycle":   ("Engineering Lifecycle",    "EVALUASI", "modules.pg_lifecycle"),
+    "consistency": ("Konsistensi Mutu",         "EVALUASI", "modules.pg_consistency"),
+    "batch":       ("Evaluasi Batch",           "EVALUASI", "modules.pg_batch"),
+    "iqscore":     ("Integrated Quality Score", "ANALISIS", "modules.pg_iqscore"),
+    "maung":       ("Analisis Mutu MAUNG MV3",  "ANALISIS", "modules.pg_maung"),
+    "whatif":      ("Simulasi What-If",         "ANALISIS", "modules.pg_whatif"),
+    "hipotesis":   ("Kesimpulan & Hipotesis",   "ANALISIS", "modules.pg_hipotesis"),
+    "interview":   ("Data Wawancara",           "ANALISIS", "modules.pg_interview"),
+    "about":       ("About Platform",           "PLATFORM", "modules.pg_about"),
+    "theory":      ("Teori & Referensi",        "PLATFORM", "modules.pg_theory"),
+    "users":       ("Manajemen User",           "PLATFORM", "modules.pg_users"),
+    "settings":    ("Pengaturan Platform",      "PLATFORM", "modules.pg_settings"),
+}
+
+def go(pid: str):
+    """Navigate to page."""
+    st.session_state.page = pid
+    st.rerun()
+
+# ── Sidebar ──────────────────────────────────────────────────
 with st.sidebar:
-    # Brand
-    st.markdown(f"""
-    <div style="text-align:center; padding:1rem 0 1.25rem;
-                border-bottom:1px solid rgba(0,212,255,0.15); margin-bottom:1rem;">
-        <div style="font-size:1.8rem; margin-bottom:.25rem;">⚙️</div>
-        <div style="font-family:'Rajdhani',sans-serif; font-size:1.05rem; font-weight:700;
-                    color:{accent}; letter-spacing:2px;">IQLE PLATFORM</div>
-        <div style="font-size:.58rem; color:#4a6fa5; letter-spacing:2px;
-                    text-transform:uppercase; margin-top:2px;">PT Pindad (Persero)</div>
-    </div>
-    """, unsafe_allow_html=True)
+    _un = user.get("full_name") or user.get("username", "")
+    _rc = "#00d4ff" if role == "admin" else "#ffd700"
+    _rl = "ADMIN"   if role == "admin" else "VIEWER"
 
-    # User badge
-    st.markdown(f"""
-    <div style="padding:.6rem .85rem; margin-bottom:1rem;
-                background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.15);
-                border-radius:8px;">
-        <div style="font-size:.6rem; color:#4a6fa5; letter-spacing:1px;
-                    text-transform:uppercase; margin-bottom:2px;">Logged in as</div>
-        <div style="font-family:'Rajdhani',sans-serif; font-size:.9rem;
-                    font-weight:600; color:#e8edf5; white-space:nowrap; overflow:hidden;
-                    text-overflow:ellipsis;">
-            {user.get('full_name') or user.get('username','User')}
-        </div>
-        <div style="font-size:.62rem; letter-spacing:1px; text-transform:uppercase;
-                    color:{'#00d4ff' if role=='admin' else '#ffd700'}; margin-top:1px;">
-            {'🔑 ADMIN' if role=='admin' else '👁 VIEWER'}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    # Brand + user
+    st.markdown(
+        f"<div style='padding:.4rem .2rem .7rem;"
+        f"border-bottom:1px solid rgba(0,212,255,.15);margin-bottom:.4rem;'>"
+        f"<div style='font-family:Rajdhani,sans-serif;font-size:1rem;"
+        f"font-weight:700;color:{accent};letter-spacing:2px;'>IQLE PLATFORM</div>"
+        f"<div style='font-size:.58rem;color:#3d5470;'>PT Pindad (Persero)</div>"
+        f"<div style='margin-top:.35rem;display:flex;align-items:center;gap:.35rem;'>"
+        f"<span style='font-size:.75rem;color:#c9d1d9;font-weight:600;'>{_un}</span>"
+        f"<span style='font-size:.6rem;color:{_rc};border:1px solid {_rc}55;"
+        f"border-radius:3px;padding:0 4px;font-family:Rajdhani;font-weight:700;'>{_rl}</span>"
+        f"</div></div>",
+        unsafe_allow_html=True,
+    )
 
-    # Navigation
-    if 'page' not in st.session_state:
-        st.session_state.page = 'home'
+    # Menu per group
+    cur = st.session_state.page
+    for grp in ("EVALUASI", "ANALISIS", "PLATFORM"):
+        st.caption(grp)
+        for pid, (label, g, _) in PAGES.items():
+            if g != grp:
+                continue
+            if pid in ("users", "settings") and not is_admin():
+                continue
+            if st.button(
+                label,
+                key=f"nav_{pid}",
+                use_container_width=True,
+                type="primary" if cur == pid else "secondary",
+            ):
+                go(pid)
 
-    menu = [
-        ("🏠  Dashboard Utama",         "home"),
-        ("📊  ISO 9001",                "iso9001"),
-        ("🏭  IATF 16949",              "iatf"),
-        ("⚙️  Engineering Lifecycle",   "lifecycle"),
-        ("✅  Konsistensi Mutu",         "consistency"),
-        ("📦  Evaluasi Batch",           "batch"),
-        ("🎯  Integrated Quality Score", "iqscore"),
-        ("💬  Data Wawancara",           "interview"),
-        ("👤  About Platform",           "about"),
-        ("📚  Teori & Referensi",        "theory"),
-        ("👥  Manajemen User",           "users"),
-        ("🔧  Pengaturan Platform",      "settings"),
-    ]
-
-    st.markdown('<div style="font-size:.65rem;color:#4a6fa5;letter-spacing:2px;'
-                'text-transform:uppercase;margin-bottom:.4rem;padding:0 .25rem;">MENU</div>',
-                unsafe_allow_html=True)
-
-    for label, pid in menu:
-        if pid == "users" and not is_admin():
-            continue
-        if pid == "settings" and not is_admin():
-            continue
-        active = st.session_state.page == pid
-        if st.button(label, key=f"nav_{pid}", use_container_width=True,
-                     type="primary" if active else "secondary"):
-            st.session_state.page = pid
-            st.rerun()
-
-    st.markdown("---")
-    if st.button("🚪  Logout", use_container_width=True):
+    st.divider()
+    if st.button("⏻  Logout", key="nav_logout", use_container_width=True):
         logout()
 
-    # Sidebar version info
-    st.markdown("""
-    <div style="margin-top:.5rem; padding:.5rem; text-align:center;
-                font-size:.6rem; color:#2a3f55; font-family:'JetBrains Mono',monospace;">
-        v2.0 · Railway · PostgreSQL<br>Quality 4.0 Dashboard
-    </div>""", unsafe_allow_html=True)
-
-# ── Render Header ──────────────────────────────────────────
+# ── Content ──────────────────────────────────────────────────
 render_header()
 
-# ── Page routing ───────────────────────────────────────────
-p = st.session_state.page
+cur = st.session_state.page
+if cur not in PAGES:
+    cur = "home"
 
-if   p == "home":        from modules.pg_home        import show
-elif p == "iso9001":     from modules.pg_iso9001     import show
-elif p == "iatf":        from modules.pg_iatf        import show
-elif p == "lifecycle":   from modules.pg_lifecycle   import show
-elif p == "consistency": from modules.pg_consistency import show
-elif p == "batch":       from modules.pg_batch       import show
-elif p == "iqscore":     from modules.pg_iqscore     import show
-elif p == "interview":   from modules.pg_interview   import show
-elif p == "about":       from modules.pg_about       import show
-elif p == "theory":      from modules.pg_theory      import show
-elif p == "users":       from modules.pg_users       import show
-elif p == "settings":    from modules.pg_settings    import show
-else:                    from modules.pg_home        import show
+_, _, mod_path = PAGES[cur]
+try:
+    mod = importlib.import_module(mod_path)
+    mod.show()
+except Exception as exc:
+    st.error(f"Error loading page: {exc}")
+    import traceback
+    st.code(traceback.format_exc())
 
-show()
-
-# ── Render Footer ──────────────────────────────────────────
 render_footer()
