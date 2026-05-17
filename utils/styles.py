@@ -215,21 +215,26 @@ def render_footer():
                     unsafe_allow_html=True,
                 )
                 if st.button(lbl, key=f"ft_{pid}",
-                             use_container_width=True,
-                             label_visibility="collapsed"):
+                             use_container_width=True):
                     st.session_state.page = pid
                     st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-    st.markdown(
-        f'<div style="text-align:center;padding:.4rem 0;margin-top:.1rem;">'
-        f'<span style="font-family:Rajdhani;font-size:.68rem;color:{accent};">'
-        f'IQLE Platform</span>'
-        f'<span style="font-size:.62rem;color:#3d5470;"> &nbsp;·&nbsp; '
-        f'PT Pindad &nbsp;·&nbsp; Universitas Pertahanan RI &nbsp;·&nbsp; © {year}'
-        f'</span></div>',
-        unsafe_allow_html=True,
-    )
+    col_copy, col_logout = st.columns([5, 1])
+    with col_copy:
+        st.markdown(
+            f'<div style="padding:.35rem 0;">'
+            f'<span style="font-family:Rajdhani;font-size:.68rem;color:{accent};">'
+            f'IQLE Platform</span>'
+            f'<span style="font-size:.62rem;color:#3d5470;"> &nbsp;·&nbsp; '
+            f'PT Pindad &nbsp;·&nbsp; Universitas Pertahanan RI &nbsp;·&nbsp; © {year}'
+            f'</span></div>',
+            unsafe_allow_html=True,
+        )
+    with col_logout:
+        if st.button("⏻ Logout", key="ft_logout", use_container_width=True):
+            from utils.auth import logout
+            logout()
 
 
 # ── Reusable UI components ────────────────────────────────────
