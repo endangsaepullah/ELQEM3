@@ -90,21 +90,21 @@ def render_topnav():
         ] if is_admin else [])),
     ]
 
-    # Build dropdown HTML
     def make_dropdown(label, items):
         items_html = "".join(
-            f'<a class="tn-item" href="?nav={pid}" onclick="setNav(\'{pid}\');return false;">{lbl}</a>'
+            '<span class="tn-item" onclick="setNav(\'' + pid + '\')">' + lbl + '</span>'
             for pid, lbl in items
         )
-        return f"""
-        <div class="tn-group">
-            <button class="tn-tab">{label} <span class="tn-arrow">▾</span></button>
-            <div class="tn-dropdown">{items_html}</div>
-        </div>"""
+        return (
+            '<div class="tn-group">'
+            '<button class="tn-tab">' + label + ' <span class="tn-arrow">▾</span></button>'
+            '<div class="tn-dropdown">' + items_html + '</div>'
+            '</div>'
+        )
 
     dropdowns_html = "".join(make_dropdown(lbl, items) for lbl, items in groups)
 
-    # ── CSS: plain string (no f-string) so curly braces are literal ──
+    # ── CSS ──
     css = (
         "<style>"
         "@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap');"
@@ -118,7 +118,7 @@ def render_topnav():
         "  display:flex; align-items:center; padding:0 1.1rem; height:100%;"
         "  border-right:1px solid rgba(0,212,255,0.12); font-size:.8rem;"
         "  font-weight:700; letter-spacing:2.5px; color:" + accent + ";"
-        "  white-space:nowrap; text-decoration:none;"
+        "  white-space:nowrap; text-decoration:none; cursor:pointer;"
         "}"
         "#tn-logo:hover { opacity:.8; }"
         ".tn-group { position:relative; height:100%; display:flex; align-items:center; }"
@@ -166,21 +166,21 @@ def render_topnav():
         "  white-space:nowrap;"
         "}"
         "#tn-logout:hover { background:rgba(255,51,102,0.18); box-shadow:0 0 10px rgba(255,51,102,0.2); }"
-        ".stMainBlockContainer, .block-container { padding-top:52px !important; }"
-        "[data-testid='stSidebar'] > div:first-child { padding-top:52px !important; }"
-        "#tn-st-logout-wrap {"
-        "  position:absolute !important; opacity:0 !important;"
-        "  pointer-events:none !important; height:0 !important;"
-        "  overflow:hidden !important; width:0 !important;"
+        ".stMainBlockContainer, .block-container { padding-top:44px !important; margin-top:0 !important; }"
+        "[data-testid='stSidebar'] > div:first-child { padding-top:44px !important; }"
+        "#tn-st-logout-wrap, #tn-st-logout-wrap * {"
+        "  display:none !important; visibility:hidden !important;"
+        "  height:0 !important; width:0 !important; overflow:hidden !important;"
+        "  position:absolute !important; pointer-events:none !important;"
+        "  margin:0 !important; padding:0 !important;"
         "}"
         "</style>"
     )
     st.markdown(css, unsafe_allow_html=True)
 
-    # ── HTML: built via concatenation, no f-string, no escaping issues ──
     html = (
         '<div id="tn-bar">'
-        '<a id="tn-logo" href="?nav=home" onclick="setNav(\'home\');return false;">⚙ IQLE</a>'
+        '<span id="tn-logo" onclick="setNav(\'home\')">⚙ IQLE</span>'
         + dropdowns_html +
         '<div id="tn-spacer"></div>'
         '<div id="tn-right">'
@@ -191,18 +191,18 @@ def render_topnav():
         '</div>'
         '<script>'
         'function setNav(page) {'
-        '  var url = new URL(window.location.href);'
-        '  url.searchParams.set("nav", page);'
-        '  window.location.href = url.toString();'
+        '  var u = new URL(window.location.href);'
+        '  u.searchParams.set("nav", page);'
+        '  window.location.replace(u.toString());'
         '}'
         'function doLogout() {'
-        '  var docs = [document, window.parent ? window.parent.document : null];'
-        '  for (var d of docs) {'
-        '    if (!d) continue;'
-        '    var btns = d.querySelectorAll("button");'
-        '    for (var b of btns) {'
-        '      if (b.innerText && b.innerText.trim() === "__ST_LOGOUT__") {'
-        '        b.click(); return;'
+        '  var docs = [document];'
+        '  try { if(window.parent && window.parent.document) docs.push(window.parent.document); } catch(e){}'
+        '  for (var i=0;i<docs.length;i++) {'
+        '    var btns = docs[i].querySelectorAll("button");'
+        '    for (var j=0;j<btns.length;j++) {'
+        '      if (btns[j].innerText && btns[j].innerText.trim() === "__ST_LOGOUT__") {'
+        '        btns[j].click(); return;'
         '      }'
         '    }'
         '  }'
@@ -211,7 +211,7 @@ def render_topnav():
     )
     st.markdown(html, unsafe_allow_html=True)
 
-    # Hidden real Streamlit logout button — labeled with sentinel text
+    # Hidden Streamlit logout button — disembunyikan total via CSS di atas
     st.markdown('<div id="tn-st-logout-wrap">', unsafe_allow_html=True)
     if st.button("__ST_LOGOUT__", key="topnav_logout_btn"):
         from utils.auth import logout
