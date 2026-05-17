@@ -104,217 +104,112 @@ def render_topnav():
 
     dropdowns_html = "".join(make_dropdown(lbl, items) for lbl, items in groups)
 
-    st.markdown(f"""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap');
+    # ── CSS: plain string (no f-string) so curly braces are literal ──
+    css = (
+        "<style>"
+        "@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap');"
+        "#tn-bar {"
+        "  position:fixed; top:0; left:0; right:0; height:44px; z-index:99999;"
+        "  background:#05080f; border-bottom:1px solid rgba(0,212,255,0.18);"
+        "  display:flex; align-items:center; padding:0;"
+        "  font-family:'Rajdhani',sans-serif; box-shadow:0 1px 20px rgba(0,0,0,0.6);"
+        "}"
+        "#tn-logo {"
+        "  display:flex; align-items:center; padding:0 1.1rem; height:100%;"
+        "  border-right:1px solid rgba(0,212,255,0.12); font-size:.8rem;"
+        "  font-weight:700; letter-spacing:2.5px; color:" + accent + ";"
+        "  white-space:nowrap; text-decoration:none;"
+        "}"
+        "#tn-logo:hover { opacity:.8; }"
+        ".tn-group { position:relative; height:100%; display:flex; align-items:center; }"
+        ".tn-tab {"
+        "  height:100%; padding:0 .9rem; background:transparent; border:none;"
+        "  border-right:1px solid rgba(0,212,255,0.07); color:#7a9bb5;"
+        "  font-family:'Rajdhani',sans-serif; font-size:.72rem; font-weight:700;"
+        "  letter-spacing:1px; cursor:pointer; transition:color .15s,background .15s;"
+        "  white-space:nowrap; display:flex; align-items:center; gap:.3rem;"
+        "}"
+        ".tn-tab:hover, .tn-group:hover .tn-tab { color:" + accent + "; background:rgba(0,212,255,0.06); }"
+        ".tn-arrow { font-size:.55rem; opacity:.6; }"
+        ".tn-dropdown {"
+        "  display:none; position:absolute; top:44px; left:0; min-width:210px;"
+        "  background:#0a0f1e; border:1px solid rgba(0,212,255,0.18);"
+        "  border-top:2px solid " + accent + "; border-radius:0 0 8px 8px;"
+        "  box-shadow:0 8px 32px rgba(0,0,0,0.5); z-index:100000; overflow:hidden;"
+        "}"
+        ".tn-group:hover .tn-dropdown { display:block; }"
+        ".tn-item {"
+        "  display:block; padding:.5rem 1rem; font-family:'Rajdhani',sans-serif;"
+        "  font-size:.74rem; font-weight:600; color:#7a9bb5; text-decoration:none;"
+        "  letter-spacing:.5px; transition:background .12s,color .12s,padding .12s;"
+        "  border-bottom:1px solid rgba(0,212,255,0.06); cursor:pointer;"
+        "}"
+        ".tn-item:last-child { border-bottom:none; }"
+        ".tn-item:hover { background:rgba(0,212,255,0.08); color:" + accent + "; padding-left:1.3rem; }"
+        "#tn-spacer { flex:1; }"
+        "#tn-right {"
+        "  display:flex; align-items:center; gap:.7rem; padding:0 1rem;"
+        "  height:100%; border-left:1px solid rgba(0,212,255,0.12);"
+        "}"
+        "#tn-greeting { font-size:.7rem; color:#7a9bb5; white-space:nowrap; }"
+        "#tn-greeting strong { color:#dde6f0; font-weight:700; }"
+        "#tn-role {"
+        "  font-size:.58rem; font-weight:700; letter-spacing:1px; padding:2px 7px;"
+        "  border-radius:3px; color:" + role_color + "; white-space:nowrap;"
+        "  border:1px solid " + role_color + "44; background:" + role_color + "11;"
+        "}"
+        "#tn-logout {"
+        "  background:rgba(255,51,102,0.08); border:1px solid rgba(255,51,102,0.35);"
+        "  color:#ff3366; font-family:'Rajdhani',sans-serif; font-size:.68rem;"
+        "  font-weight:700; letter-spacing:1px; padding:3px 12px; height:26px;"
+        "  border-radius:4px; cursor:pointer; transition:background .15s,box-shadow .15s;"
+        "  white-space:nowrap;"
+        "}"
+        "#tn-logout:hover { background:rgba(255,51,102,0.18); box-shadow:0 0 10px rgba(255,51,102,0.2); }"
+        ".stMainBlockContainer, .block-container { padding-top:52px !important; }"
+        "[data-testid='stSidebar'] > div:first-child { padding-top:52px !important; }"
+        "#tn-st-logout-wrap {"
+        "  position:absolute !important; opacity:0 !important;"
+        "  pointer-events:none !important; height:0 !important;"
+        "  overflow:hidden !important; width:0 !important;"
+        "}"
+        "</style>"
+    )
+    st.markdown(css, unsafe_allow_html=True)
 
-    /* ── Navbar shell ── */
-    #tn-bar {{
-        position: fixed;
-        top: 0; left: 0; right: 0;
-        height: 44px;
-        z-index: 99999;
-        background: #05080f;
-        border-bottom: 1px solid rgba(0,212,255,0.18);
-        display: flex;
-        align-items: center;
-        gap: 0;
-        padding: 0;
-        font-family: 'Rajdhani', sans-serif;
-        box-shadow: 0 1px 20px rgba(0,0,0,0.6);
-    }}
-
-    /* Logo */
-    #tn-logo {{
-        display: flex;
-        align-items: center;
-        gap: .4rem;
-        padding: 0 1.1rem;
-        height: 100%;
-        border-right: 1px solid rgba(0,212,255,0.12);
-        font-size: .8rem;
-        font-weight: 700;
-        letter-spacing: 2.5px;
-        color: {accent};
-        white-space: nowrap;
-        text-decoration: none;
-    }}
-
-    /* Nav groups (dropdown triggers) */
-    .tn-group {{
-        position: relative;
-        height: 100%;
-        display: flex;
-        align-items: center;
-    }}
-    .tn-tab {{
-        height: 100%;
-        padding: 0 .9rem;
-        background: transparent;
-        border: none;
-        border-right: 1px solid rgba(0,212,255,0.07);
-        color: #7a9bb5;
-        font-family: 'Rajdhani', sans-serif;
-        font-size: .72rem;
-        font-weight: 700;
-        letter-spacing: 1px;
-        cursor: pointer;
-        transition: color .15s, background .15s;
-        white-space: nowrap;
-        display: flex;
-        align-items: center;
-        gap: .3rem;
-    }}
-    .tn-tab:hover, .tn-group:hover .tn-tab {{
-        color: {accent};
-        background: rgba(0,212,255,0.06);
-    }}
-    .tn-arrow {{ font-size: .55rem; opacity: .6; }}
-
-    /* Dropdown panel */
-    .tn-dropdown {{
-        display: none;
-        position: absolute;
-        top: 44px;
-        left: 0;
-        min-width: 210px;
-        background: #0a0f1e;
-        border: 1px solid rgba(0,212,255,0.18);
-        border-top: 2px solid {accent};
-        border-radius: 0 0 8px 8px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-        z-index: 100000;
-        overflow: hidden;
-    }}
-    .tn-group:hover .tn-dropdown {{ display: block; }}
-    .tn-item {{
-        display: block;
-        padding: .5rem 1rem;
-        font-family: 'Rajdhani', sans-serif;
-        font-size: .74rem;
-        font-weight: 600;
-        color: #7a9bb5;
-        text-decoration: none;
-        letter-spacing: .5px;
-        transition: background .12s, color .12s;
-        border-bottom: 1px solid rgba(0,212,255,0.06);
-        cursor: pointer;
-    }}
-    .tn-item:last-child {{ border-bottom: none; }}
-    .tn-item:hover {{
-        background: rgba(0,212,255,0.08);
-        color: {accent};
-        padding-left: 1.3rem;
-    }}
-
-    /* Spacer */
-    #tn-spacer {{ flex: 1; }}
-
-    /* Right section: greeting + role + logout */
-    #tn-right {{
-        display: flex;
-        align-items: center;
-        gap: .7rem;
-        padding: 0 1rem;
-        height: 100%;
-        border-left: 1px solid rgba(0,212,255,0.12);
-    }}
-    #tn-greeting {{
-        font-size: .7rem;
-        color: #7a9bb5;
-        white-space: nowrap;
-    }}
-    #tn-greeting strong {{
-        color: #dde6f0;
-        font-weight: 700;
-    }}
-    #tn-role {{
-        font-size: .58rem;
-        font-weight: 700;
-        letter-spacing: 1px;
-        padding: 2px 7px;
-        border-radius: 3px;
-        color: {role_color};
-        border: 1px solid {role_color}44;
-        background: {role_color}0f;
-        white-space: nowrap;
-    }}
-    #tn-logout {{
-        background: rgba(255,51,102,0.08);
-        border: 1px solid rgba(255,51,102,0.35);
-        color: #ff3366;
-        font-family: 'Rajdhani', sans-serif;
-        font-size: .68rem;
-        font-weight: 700;
-        letter-spacing: 1px;
-        padding: 3px 12px;
-        height: 26px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background .15s, box-shadow .15s;
-        white-space: nowrap;
-    }}
-    #tn-logout:hover {{
-        background: rgba(255,51,102,0.18);
-        box-shadow: 0 0 10px rgba(255,51,102,0.2);
-    }}
-
-    /* ── Push content below navbar ── */
-    .stMainBlockContainer, .block-container {{
-        padding-top: 52px !important;
-    }}
-    [data-testid="stSidebar"] > div:first-child {{
-        padding-top: 52px !important;
-    }}
-
-    /* Hide the dummy Streamlit logout button from layout */
-    #tn-st-logout-wrap {{
-        position: absolute !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        height: 0 !important;
-        overflow: hidden !important;
-        width: 0 !important;
-    }}
-    </style>
-
-    <div id="tn-bar">
-        <a id="tn-logo" href="?nav=home" onclick="setNav('home');return false;">⚙ IQLE</a>
-        {dropdowns_html}
-        <div id="tn-spacer"></div>
-        <div id="tn-right">
-            <span id="tn-greeting">Halo, <strong>{uname}</strong></span>
-            <span id="tn-role">{role_label}</span>
-            <button id="tn-logout" onclick="doLogout()">⏻ LOGOUT</button>
-        </div>
-    </div>
-
-    <script>
-    // Navigate: set query param then reload — Streamlit picks it up
-    function setNav(page) {{
-        const url = new URL(window.location.href);
-        url.searchParams.set('nav', page);
-        window.location.href = url.toString();
-    }}
-
-    // Logout: click the hidden real Streamlit button
-    function doLogout() {{
-        const btns = window.parent.document.querySelectorAll('button');
-        for (const b of btns) {{
-            if (b.innerText && b.innerText.trim() === '__ST_LOGOUT__') {{
-                b.click(); return;
-            }}
-        }}
-        // fallback: try in same document
-        const btns2 = document.querySelectorAll('button');
-        for (const b of btns2) {{
-            if (b.innerText && b.innerText.trim() === '__ST_LOGOUT__') {{
-                b.click(); return;
-            }}
-        }}
-    }}
-    </script>
-    """, unsafe_allow_html=True)
+    # ── HTML: built via concatenation, no f-string, no escaping issues ──
+    html = (
+        '<div id="tn-bar">'
+        '<a id="tn-logo" href="?nav=home" onclick="setNav(\'home\');return false;">⚙ IQLE</a>'
+        + dropdowns_html +
+        '<div id="tn-spacer"></div>'
+        '<div id="tn-right">'
+        '<span id="tn-greeting">Halo, <strong>' + uname + '</strong></span>'
+        '<span id="tn-role">' + role_label + '</span>'
+        '<button id="tn-logout" onclick="doLogout()">⏻ LOGOUT</button>'
+        '</div>'
+        '</div>'
+        '<script>'
+        'function setNav(page) {'
+        '  var url = new URL(window.location.href);'
+        '  url.searchParams.set("nav", page);'
+        '  window.location.href = url.toString();'
+        '}'
+        'function doLogout() {'
+        '  var docs = [document, window.parent ? window.parent.document : null];'
+        '  for (var d of docs) {'
+        '    if (!d) continue;'
+        '    var btns = d.querySelectorAll("button");'
+        '    for (var b of btns) {'
+        '      if (b.innerText && b.innerText.trim() === "__ST_LOGOUT__") {'
+        '        b.click(); return;'
+        '      }'
+        '    }'
+        '  }'
+        '}'
+        '</script>'
+    )
+    st.markdown(html, unsafe_allow_html=True)
 
     # Hidden real Streamlit logout button — labeled with sentinel text
     st.markdown('<div id="tn-st-logout-wrap">', unsafe_allow_html=True)
