@@ -34,16 +34,7 @@ accent = get_setting("ui_accent_color", "#00d4ff")
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
-# ── Read navbar navigation from query params ─────────────────
-_nav = st.query_params.get('nav', None)
-_valid_pages = [
-    'home','iso9001','iatf','lifecycle','consistency','batch',
-    'iqscore','maung','whatif','hipotesis','interview',
-    'about','theory','users','settings'
-]
-if _nav and _nav in _valid_pages:
-    st.session_state.page = _nav
-    st.query_params.clear()   # clean the URL after reading
+# Navigation handled via hidden buttons in render_topnav()
 
 # ── Global CSS ──────────────────────────────────────────────
 st.markdown("""
@@ -65,17 +56,6 @@ button[data-testid="baseButton-headerNoPadding"] {
 
 # ── Sidebar ─────────────────────────────────────────────────
 with st.sidebar:
-    # Toggle button
-    if 'sb_open' not in st.session_state:
-        st.session_state.sb_open = True
-
-    if st.button("◀ Ciutkan" if st.session_state.sb_open else "▶ Buka",
-                 key="sb_toggle", use_container_width=True):
-        st.session_state.sb_open = not st.session_state.sb_open
-        st.rerun()
-
-    st.markdown("---")
-
     # Brand
     st.markdown(f"""
     <div style="text-align:center;padding:.5rem 0 .75rem;">
