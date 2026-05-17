@@ -48,147 +48,184 @@ def apply_global_style():
 def render_topnav():
     """
     Renders a slim fixed top navbar with user greeting + logout button.
-    Must be called ONCE per page, before render_header().
-    The logout button uses a hidden Streamlit button trick via JS click.
+    Strategy: render the navbar HTML + a real Streamlit button, then use JS
+    to physically move the button's DOM node into the navbar's right slot.
+    This avoids Streamlit layout interference entirely.
     """
     accent = get_setting("ui_accent_color", "#00d4ff")
     user   = st.session_state.get('user', {})
     role   = st.session_state.get('role', 'viewer')
 
-    uname  = user.get('full_name') or user.get('username', 'User')
+    uname      = user.get('full_name') or user.get('username', 'User')
     role_label = "ADMIN" if role == "admin" else "USER"
     role_color = accent if role == "admin" else "#ffd700"
 
-    # Inject CSS: push all content down so navbar doesn't overlap
-    st.markdown("""
+    st.markdown(f"""
     <style>
-    .iqle-topnav {
+    /* ── Fixed top navbar ── */
+    #iqle-topnav {{
         position: fixed;
         top: 0; left: 0; right: 0;
-        height: 40px;
-        z-index: 9999;
-        background: #080c17;
-        border-bottom: 1px solid rgba(0,212,255,0.18);
+        height: 42px;
+        z-index: 99999;
+        background: #060a13;
+        border-bottom: 1px solid rgba(0,212,255,0.20);
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 1.25rem;
+        padding: 0 1.4rem;
         font-family: 'Rajdhani', sans-serif;
-        backdrop-filter: blur(8px);
-    }
-    .iqle-topnav-left {
+        box-shadow: 0 2px 16px rgba(0,0,0,0.5);
+    }}
+    #iqle-topnav-left {{
         display: flex;
         align-items: center;
-        gap: .6rem;
-    }
-    .iqle-topnav-logo {
-        font-size: .75rem;
+        gap: .65rem;
+    }}
+    #iqle-topnav-logo {{
+        font-size: .78rem;
         font-weight: 700;
-        letter-spacing: 2px;
-        color: var(--accent, #00d4ff);
-        opacity: .7;
-    }
-    .iqle-topnav-sep {
-        width: 1px; height: 16px;
-        background: rgba(0,212,255,0.2);
-    }
-    .iqle-topnav-greeting {
-        font-size: .72rem;
-        color: #7a9bb5;
-        letter-spacing: .5px;
-    }
-    .iqle-topnav-greeting strong {
-        color: #e8edf5;
-        font-weight: 600;
-    }
-    .iqle-topnav-right {
+        letter-spacing: 2.5px;
+        color: {accent};
+        opacity: .85;
         display: flex;
         align-items: center;
-        gap: .75rem;
-    }
-    .iqle-role-badge {
+        gap: .3rem;
+    }}
+    #iqle-topnav-sep {{
+        width: 1px; height: 18px;
+        background: rgba(0,212,255,0.22);
+    }}
+    #iqle-topnav-greeting {{
+        font-size: .74rem;
+        color: #7a9bb5;
+        letter-spacing: .3px;
+    }}
+    #iqle-topnav-greeting strong {{
+        color: #dde6f0;
+        font-weight: 700;
+    }}
+    #iqle-role-badge {{
         font-size: .58rem;
         font-weight: 700;
-        letter-spacing: 1px;
-        padding: 2px 7px;
+        letter-spacing: 1.2px;
+        padding: 2px 8px;
         border-radius: 3px;
-        border: 1px solid;
-    }
-    /* Logout button styling - targets the hidden streamlit button */
-    div[data-testid="stButton"].iqle-logout-btn > button {
-        background: rgba(255,51,102,0.08) !important;
-        border: 1px solid rgba(255,51,102,0.35) !important;
+        color: {role_color};
+        border: 1px solid {role_color}55;
+        background: {role_color}11;
+    }}
+    #iqle-topnav-right {{
+        display: flex;
+        align-items: center;
+    }}
+    /* Logout button — targets the <button> moved into #iqle-topnav-right */
+    #iqle-topnav-right button {{
+        background: rgba(255,51,102,0.07) !important;
+        border: 1px solid rgba(255,51,102,0.38) !important;
         color: #ff3366 !important;
         font-family: 'Rajdhani', sans-serif !important;
-        font-size: .65rem !important;
+        font-size: .68rem !important;
         font-weight: 700 !important;
-        letter-spacing: 1px !important;
-        padding: 2px 12px !important;
+        letter-spacing: 1.2px !important;
+        padding: 3px 14px !important;
         height: 26px !important;
+        min-height: unset !important;
         line-height: 1 !important;
         border-radius: 4px !important;
         cursor: pointer !important;
-        transition: all .2s !important;
-    }
-    div[data-testid="stButton"].iqle-logout-btn > button:hover {
-        background: rgba(255,51,102,0.18) !important;
-        box-shadow: 0 0 10px rgba(255,51,102,0.2) !important;
-    }
-    /* Push main content below the navbar */
-    .stMainBlockContainer, .block-container {
-        padding-top: 52px !important;
-        margin-top: 0 !important;
-    }
-    /* Also push sidebar content down */
-    [data-testid="stSidebar"] > div:first-child {
-        padding-top: 52px !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+        transition: background .18s, box-shadow .18s !important;
+        white-space: nowrap !important;
+    }}
+    #iqle-topnav-right button:hover {{
+        background: rgba(255,51,102,0.17) !important;
+        box-shadow: 0 0 12px rgba(255,51,102,0.22) !important;
+    }}
 
-    # HTML navbar (visual only - logo + greeting + role badge)
-    st.markdown(f"""
-    <div class="iqle-topnav">
-        <div class="iqle-topnav-left">
-            <span class="iqle-topnav-logo">⚙ IQLE</span>
-            <div class="iqle-topnav-sep"></div>
-            <span class="iqle-topnav-greeting">
+    /* ── Layout offsets so content doesn't hide under navbar ── */
+    .stMainBlockContainer, .block-container {{
+        padding-top: 50px !important;
+        margin-top: 0 !important;
+    }}
+    [data-testid="stSidebar"] > div:first-child {{
+        padding-top: 50px !important;
+    }}
+
+    /* ── Hide the Streamlit wrapper that held the button ── */
+    #iqle-logout-wrapper {{
+        display: none !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }}
+    </style>
+
+    <!-- Fixed navbar shell -->
+    <div id="iqle-topnav">
+        <div id="iqle-topnav-left">
+            <span id="iqle-topnav-logo">⚙ IQLE</span>
+            <div id="iqle-topnav-sep"></div>
+            <span id="iqle-topnav-greeting">
                 Selamat datang, <strong>{uname}</strong>
             </span>
-            <span class="iqle-role-badge"
-                  style="color:{role_color};border-color:{role_color}44;">
-                {role_label}
-            </span>
+            <span id="iqle-role-badge">{role_label}</span>
         </div>
-        <div class="iqle-topnav-right" id="iqle-logout-slot">
-            <!-- logout button will be injected by Streamlit below -->
+        <div id="iqle-topnav-right">
+            <!-- logout button hoisted here by JS -->
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Invisible container for the logout button, positioned into the navbar via CSS
-    st.markdown("""
-    <style>
-    /* Float the logout button container up into the fixed navbar */
-    div[data-testid="stVerticalBlock"]:has(> div[data-testid="stButton"].iqle-logout-btn) {
-        position: fixed !important;
-        top: 7px !important;
-        right: 1.25rem !important;
-        z-index: 10000 !important;
-        width: auto !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    # Real Streamlit button — will be hidden from layout but clickable via JS
+    st.markdown('<div id="iqle-logout-wrapper">', unsafe_allow_html=True)
+    clicked = st.button("⏻  LOGOUT", key="topnav_logout_btn")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    # Actual Streamlit logout button (gets hoisted visually into navbar)
-    col = st.container()
-    with col:
-        # We use a unique key and inject the class via markdown trick
-        st.markdown('<div class="iqle-logout-btn">', unsafe_allow_html=True)
-        if st.button("⏻  LOGOUT", key="topnav_logout_btn"):
-            from utils.auth import logout
-            logout()
-        st.markdown('</div>', unsafe_allow_html=True)
+    if clicked:
+        from utils.auth import logout
+        logout()
+
+    # JS: find the real <button> and move it into the navbar's right slot
+    st.markdown("""
+    <script>
+    (function hoistLogout() {
+        const slot = document.getElementById('iqle-topnav-right');
+        if (!slot) return;
+
+        // Find the Streamlit button by its text content
+        function findBtn() {
+            const buttons = document.querySelectorAll('button');
+            for (const b of buttons) {
+                if (b.textContent.includes('LOGOUT')) return b;
+            }
+            return null;
+        }
+
+        function move() {
+            const btn = findBtn();
+            if (btn && slot && !slot.contains(btn)) {
+                // Clone with event listeners preserved via re-wiring
+                slot.innerHTML = '';
+                slot.appendChild(btn);
+
+                // Hide the original wrapper
+                const wrapper = document.getElementById('iqle-logout-wrapper');
+                if (wrapper) wrapper.style.display = 'none';
+            }
+        }
+
+        // Run immediately and also after DOM mutations (Streamlit re-renders)
+        move();
+        const observer = new MutationObserver(move);
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        // Also retry on interval for safety
+        const t = setInterval(() => {
+            move();
+            if (slot.querySelector('button')) clearInterval(t);
+        }, 200);
+    })();
+    </script>
+    """, unsafe_allow_html=True)
 
 
 def render_header():
