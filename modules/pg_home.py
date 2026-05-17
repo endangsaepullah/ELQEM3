@@ -176,7 +176,15 @@ def show():
                         use_container_width=True, type="primary")
 
     if gen:
-        _generate_dashboard_pdf(batch_df, defect_df, kpi)
+        _kpi = {
+            "total_batch":  total_batch,
+            "total_units":  total_units,
+            "total_defect": total_defect,
+            "defect_rate":  avg_dr,
+            "rework_rate":  avg_rr,
+            "iqls":         iqls,
+        }
+        _generate_dashboard_pdf(batch_df, defect_df, _kpi)
 
 
 def _generate_dashboard_pdf(batch_df, defect_df, kpi):
