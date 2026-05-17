@@ -34,6 +34,17 @@ accent = get_setting("ui_accent_color", "#00d4ff")
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 
+# ── Read navbar navigation from query params ─────────────────
+_nav = st.query_params.get('nav', None)
+_valid_pages = [
+    'home','iso9001','iatf','lifecycle','consistency','batch',
+    'iqscore','maung','whatif','hipotesis','interview',
+    'about','theory','users','settings'
+]
+if _nav and _nav in _valid_pages:
+    st.session_state.page = _nav
+    st.query_params.clear()   # clean the URL after reading
+
 # ── Global CSS ──────────────────────────────────────────────
 st.markdown("""
 <style>
