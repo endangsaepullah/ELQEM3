@@ -47,185 +47,281 @@ def apply_global_style():
 
 def render_topnav():
     """
-    Renders a slim fixed top navbar with user greeting + logout button.
-    Strategy: render the navbar HTML + a real Streamlit button, then use JS
-    to physically move the button's DOM node into the navbar's right slot.
-    This avoids Streamlit layout interference entirely.
+    Renders a fixed top navbar (pure HTML/CSS/JS) with:
+    - Logo + grouped dropdown menus (Evaluasi, Analisis, Platform)
+    - User greeting + role badge
+    - Logout button (triggers hidden Streamlit button via JS click)
+    Navigation clicks set ?nav=<page> in the URL query string,
+    which app.py reads via st.query_params to switch pages.
     """
-    accent = get_setting("ui_accent_color", "#00d4ff")
-    user   = st.session_state.get('user', {})
-    role   = st.session_state.get('role', 'viewer')
+    import streamlit as st
+    accent     = get_setting("ui_accent_color", "#00d4ff")
+    user_info  = st.session_state.get('user', {})
+    role       = st.session_state.get('role', 'viewer')
+    is_admin   = (role == 'admin')
 
-    uname      = user.get('full_name') or user.get('username', 'User')
-    role_label = "ADMIN" if role == "admin" else "USER"
-    role_color = accent if role == "admin" else "#ffd700"
+    uname      = user_info.get('full_name') or user_info.get('username', 'User')
+    role_label = "ADMIN" if is_admin else "USER"
+    role_color = accent if is_admin else "#ffd700"
+
+    # Menu groups matching sidebar + footer
+    groups = [
+        ("Evaluasi", [
+            ("home",        "🏠 Dashboard Utama"),
+            ("iso9001",     "📋 ISO 9001"),
+            ("iatf",        "🏭 IATF 16949"),
+            ("lifecycle",   "⚙ Engineering Lifecycle"),
+            ("consistency", "📊 Konsistensi Mutu"),
+            ("batch",       "🔬 Evaluasi Batch"),
+        ]),
+        ("Analisis", [
+            ("iqscore",     "🏆 Integrated Quality Score"),
+            ("maung",       "🚗 Analisis Mutu MAUNG MV3"),
+            ("whatif",      "💡 Simulasi What-If"),
+            ("hipotesis",   "📝 Kesimpulan & Hipotesis"),
+            ("interview",   "🎤 Data Wawancara"),
+        ]),
+        ("Platform", [
+            ("about",       "ℹ️ About Platform"),
+            ("theory",      "📚 Teori & Referensi"),
+        ] + ([
+            ("users",       "👥 Manajemen User"),
+            ("settings",    "⚙️ Pengaturan Platform"),
+        ] if is_admin else [])),
+    ]
+
+    # Build dropdown HTML
+    def make_dropdown(label, items):
+        items_html = "".join(
+            f'<a class="tn-item" href="?nav={pid}" onclick="setNav(\'{pid}\');return false;">{lbl}</a>'
+            for pid, lbl in items
+        )
+        return f"""
+        <div class="tn-group">
+            <button class="tn-tab">{label} <span class="tn-arrow">▾</span></button>
+            <div class="tn-dropdown">{items_html}</div>
+        </div>"""
+
+    dropdowns_html = "".join(make_dropdown(lbl, items) for lbl, items in groups)
 
     st.markdown(f"""
     <style>
-    /* ── Fixed top navbar ── */
-    #iqle-topnav {{
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap');
+
+    /* ── Navbar shell ── */
+    #tn-bar {{
         position: fixed;
         top: 0; left: 0; right: 0;
-        height: 42px;
+        height: 44px;
         z-index: 99999;
-        background: #060a13;
-        border-bottom: 1px solid rgba(0,212,255,0.20);
+        background: #05080f;
+        border-bottom: 1px solid rgba(0,212,255,0.18);
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 0 1.4rem;
+        gap: 0;
+        padding: 0;
         font-family: 'Rajdhani', sans-serif;
-        box-shadow: 0 2px 16px rgba(0,0,0,0.5);
+        box-shadow: 0 1px 20px rgba(0,0,0,0.6);
     }}
-    #iqle-topnav-left {{
+
+    /* Logo */
+    #tn-logo {{
         display: flex;
         align-items: center;
-        gap: .65rem;
-    }}
-    #iqle-topnav-logo {{
-        font-size: .78rem;
+        gap: .4rem;
+        padding: 0 1.1rem;
+        height: 100%;
+        border-right: 1px solid rgba(0,212,255,0.12);
+        font-size: .8rem;
         font-weight: 700;
         letter-spacing: 2.5px;
         color: {accent};
-        opacity: .85;
+        white-space: nowrap;
+        text-decoration: none;
+    }}
+
+    /* Nav groups (dropdown triggers) */
+    .tn-group {{
+        position: relative;
+        height: 100%;
+        display: flex;
+        align-items: center;
+    }}
+    .tn-tab {{
+        height: 100%;
+        padding: 0 .9rem;
+        background: transparent;
+        border: none;
+        border-right: 1px solid rgba(0,212,255,0.07);
+        color: #7a9bb5;
+        font-family: 'Rajdhani', sans-serif;
+        font-size: .72rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: color .15s, background .15s;
+        white-space: nowrap;
         display: flex;
         align-items: center;
         gap: .3rem;
     }}
-    #iqle-topnav-sep {{
-        width: 1px; height: 18px;
-        background: rgba(0,212,255,0.22);
+    .tn-tab:hover, .tn-group:hover .tn-tab {{
+        color: {accent};
+        background: rgba(0,212,255,0.06);
     }}
-    #iqle-topnav-greeting {{
+    .tn-arrow {{ font-size: .55rem; opacity: .6; }}
+
+    /* Dropdown panel */
+    .tn-dropdown {{
+        display: none;
+        position: absolute;
+        top: 44px;
+        left: 0;
+        min-width: 210px;
+        background: #0a0f1e;
+        border: 1px solid rgba(0,212,255,0.18);
+        border-top: 2px solid {accent};
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        z-index: 100000;
+        overflow: hidden;
+    }}
+    .tn-group:hover .tn-dropdown {{ display: block; }}
+    .tn-item {{
+        display: block;
+        padding: .5rem 1rem;
+        font-family: 'Rajdhani', sans-serif;
         font-size: .74rem;
+        font-weight: 600;
         color: #7a9bb5;
-        letter-spacing: .3px;
+        text-decoration: none;
+        letter-spacing: .5px;
+        transition: background .12s, color .12s;
+        border-bottom: 1px solid rgba(0,212,255,0.06);
+        cursor: pointer;
     }}
-    #iqle-topnav-greeting strong {{
+    .tn-item:last-child {{ border-bottom: none; }}
+    .tn-item:hover {{
+        background: rgba(0,212,255,0.08);
+        color: {accent};
+        padding-left: 1.3rem;
+    }}
+
+    /* Spacer */
+    #tn-spacer {{ flex: 1; }}
+
+    /* Right section: greeting + role + logout */
+    #tn-right {{
+        display: flex;
+        align-items: center;
+        gap: .7rem;
+        padding: 0 1rem;
+        height: 100%;
+        border-left: 1px solid rgba(0,212,255,0.12);
+    }}
+    #tn-greeting {{
+        font-size: .7rem;
+        color: #7a9bb5;
+        white-space: nowrap;
+    }}
+    #tn-greeting strong {{
         color: #dde6f0;
         font-weight: 700;
     }}
-    #iqle-role-badge {{
+    #tn-role {{
         font-size: .58rem;
         font-weight: 700;
-        letter-spacing: 1.2px;
-        padding: 2px 8px;
+        letter-spacing: 1px;
+        padding: 2px 7px;
         border-radius: 3px;
         color: {role_color};
-        border: 1px solid {role_color}55;
-        background: {role_color}11;
+        border: 1px solid {role_color}44;
+        background: {role_color}0f;
+        white-space: nowrap;
     }}
-    #iqle-topnav-right {{
-        display: flex;
-        align-items: center;
+    #tn-logout {{
+        background: rgba(255,51,102,0.08);
+        border: 1px solid rgba(255,51,102,0.35);
+        color: #ff3366;
+        font-family: 'Rajdhani', sans-serif;
+        font-size: .68rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        padding: 3px 12px;
+        height: 26px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background .15s, box-shadow .15s;
+        white-space: nowrap;
     }}
-    /* Logout button — targets the <button> moved into #iqle-topnav-right */
-    #iqle-topnav-right button {{
-        background: rgba(255,51,102,0.07) !important;
-        border: 1px solid rgba(255,51,102,0.38) !important;
-        color: #ff3366 !important;
-        font-family: 'Rajdhani', sans-serif !important;
-        font-size: .68rem !important;
-        font-weight: 700 !important;
-        letter-spacing: 1.2px !important;
-        padding: 3px 14px !important;
-        height: 26px !important;
-        min-height: unset !important;
-        line-height: 1 !important;
-        border-radius: 4px !important;
-        cursor: pointer !important;
-        transition: background .18s, box-shadow .18s !important;
-        white-space: nowrap !important;
-    }}
-    #iqle-topnav-right button:hover {{
-        background: rgba(255,51,102,0.17) !important;
-        box-shadow: 0 0 12px rgba(255,51,102,0.22) !important;
+    #tn-logout:hover {{
+        background: rgba(255,51,102,0.18);
+        box-shadow: 0 0 10px rgba(255,51,102,0.2);
     }}
 
-    /* ── Layout offsets so content doesn't hide under navbar ── */
+    /* ── Push content below navbar ── */
     .stMainBlockContainer, .block-container {{
-        padding-top: 50px !important;
-        margin-top: 0 !important;
+        padding-top: 52px !important;
     }}
     [data-testid="stSidebar"] > div:first-child {{
-        padding-top: 50px !important;
+        padding-top: 52px !important;
     }}
 
-    /* ── Hide the Streamlit wrapper that held the button ── */
-    #iqle-logout-wrapper {{
-        display: none !important;
+    /* Hide the dummy Streamlit logout button from layout */
+    #tn-st-logout-wrap {{
+        position: absolute !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
         height: 0 !important;
         overflow: hidden !important;
+        width: 0 !important;
     }}
     </style>
 
-    <!-- Fixed navbar shell -->
-    <div id="iqle-topnav">
-        <div id="iqle-topnav-left">
-            <span id="iqle-topnav-logo">⚙ IQLE</span>
-            <div id="iqle-topnav-sep"></div>
-            <span id="iqle-topnav-greeting">
-                Selamat datang, <strong>{uname}</strong>
-            </span>
-            <span id="iqle-role-badge">{role_label}</span>
-        </div>
-        <div id="iqle-topnav-right">
-            <!-- logout button hoisted here by JS -->
+    <div id="tn-bar">
+        <a id="tn-logo" href="?nav=home" onclick="setNav('home');return false;">⚙ IQLE</a>
+        {dropdowns_html}
+        <div id="tn-spacer"></div>
+        <div id="tn-right">
+            <span id="tn-greeting">Halo, <strong>{uname}</strong></span>
+            <span id="tn-role">{role_label}</span>
+            <button id="tn-logout" onclick="doLogout()">⏻ LOGOUT</button>
         </div>
     </div>
-    """, unsafe_allow_html=True)
 
-    # Real Streamlit button — will be hidden from layout but clickable via JS
-    st.markdown('<div id="iqle-logout-wrapper">', unsafe_allow_html=True)
-    clicked = st.button("⏻  LOGOUT", key="topnav_logout_btn")
-    st.markdown('</div>', unsafe_allow_html=True)
-
-    if clicked:
-        from utils.auth import logout
-        logout()
-
-    # JS: find the real <button> and move it into the navbar's right slot
-    st.markdown("""
     <script>
-    (function hoistLogout() {
-        const slot = document.getElementById('iqle-topnav-right');
-        if (!slot) return;
+    // Navigate: set query param then reload — Streamlit picks it up
+    function setNav(page) {{
+        const url = new URL(window.location.href);
+        url.searchParams.set('nav', page);
+        window.location.href = url.toString();
+    }}
 
-        // Find the Streamlit button by its text content
-        function findBtn() {
-            const buttons = document.querySelectorAll('button');
-            for (const b of buttons) {
-                if (b.textContent.includes('LOGOUT')) return b;
-            }
-            return null;
-        }
-
-        function move() {
-            const btn = findBtn();
-            if (btn && slot && !slot.contains(btn)) {
-                // Clone with event listeners preserved via re-wiring
-                slot.innerHTML = '';
-                slot.appendChild(btn);
-
-                // Hide the original wrapper
-                const wrapper = document.getElementById('iqle-logout-wrapper');
-                if (wrapper) wrapper.style.display = 'none';
-            }
-        }
-
-        // Run immediately and also after DOM mutations (Streamlit re-renders)
-        move();
-        const observer = new MutationObserver(move);
-        observer.observe(document.body, { childList: true, subtree: true });
-
-        // Also retry on interval for safety
-        const t = setInterval(() => {
-            move();
-            if (slot.querySelector('button')) clearInterval(t);
-        }, 200);
-    })();
+    // Logout: click the hidden real Streamlit button
+    function doLogout() {{
+        const btns = window.parent.document.querySelectorAll('button');
+        for (const b of btns) {{
+            if (b.innerText && b.innerText.trim() === '__ST_LOGOUT__') {{
+                b.click(); return;
+            }}
+        }}
+        // fallback: try in same document
+        const btns2 = document.querySelectorAll('button');
+        for (const b of btns2) {{
+            if (b.innerText && b.innerText.trim() === '__ST_LOGOUT__') {{
+                b.click(); return;
+            }}
+        }}
+    }}
     </script>
     """, unsafe_allow_html=True)
+
+    # Hidden real Streamlit logout button — labeled with sentinel text
+    st.markdown('<div id="tn-st-logout-wrap">', unsafe_allow_html=True)
+    if st.button("__ST_LOGOUT__", key="topnav_logout_btn"):
+        from utils.auth import logout
+        logout()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 def render_header():
