@@ -181,63 +181,82 @@ def render_header():
 
 
 def render_footer():
-    """Footer with quick-nav + copyright."""
+    """Simple footer with compact nav links + logout."""
+    import streamlit as st
+    from utils.auth import logout
     accent = get_setting("ui_accent_color", "#00d4ff")
     year   = get_setting("footer_year", "2025")
 
     st.markdown(
-        '<div style="margin-top:2.5rem;border-top:1px solid #21262d;'
-        'padding-top:.75rem;"></div>',
+        '<div style="margin-top:2.5rem;border-top:1px solid #21262d;padding-top:.75rem;"></div>',
         unsafe_allow_html=True,
     )
 
-    NAV_ROWS = [
-        [("home","Dashboard"),("iso9001","ISO 9001"),("iatf","IATF 16949"),
-         ("lifecycle","Lifecycle"),("consistency","Konsistensi")],
-        [("batch","Eval. Batch"),("iqscore","IQ Score"),("maung","MAUNG MV3"),
-         ("whatif","What-If"),("hipotesis","Hipotesis")],
-        [("interview","Wawancara"),("about","About"),("theory","Teori"),
-         ("users","Users"),("settings","Settings")],
+    # One row of nav links
+    pages = [
+        ("home","Dashboard"),("iso9001","ISO 9001"),("iatf","IATF"),
+        ("lifecycle","Lifecycle"),("consistency","Konsistensi"),("batch","Batch"),
+        ("iqscore","IQ Score"),("maung","MAUNG MV3"),("whatif","What-If"),
+        ("hipotesis","Hipotesis"),("interview","Wawancara"),
+        ("about","About"),("theory","Teori"),("users","Users"),("settings","Settings"),
     ]
 
-    st.markdown('<div class="footer-nav">', unsafe_allow_html=True)
-    for row in NAV_ROWS:
-        cols = st.columns(len(row))
-        for col, (pid, lbl) in zip(cols, row):
-            with col:
-                cur = st.session_state.get("page","home")
-                clr = accent if cur == pid else "#4a6fa5"
-                fw  = "700"  if cur == pid else "400"
-                st.markdown(
-                    f'<div style="text-align:center;">'
-                    f'<span style="font-size:.72rem;color:{clr};'
-                    f'font-weight:{fw};">{lbl}</span></div>',
-                    unsafe_allow_html=True,
-                )
-                if st.button(lbl, key=f"ft_{pid}",
-                             use_container_width=True):
-                    st.session_state.page = pid
-                    st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
+    cur = st.session_state.get("page", "home")
+    cols = st.columns(len(pages) + 1)
+    for col, (pid, lbl) in zip(cols, pages):
+        with col:
+            clr = accent if cur == pid else "#3d5470"
+            st.markdown(
+                f'<div style="text-align:center;padding:2px 0;">'
+                f'<a style="font-size:.65rem;color:{clr};text-decoration:none;'
+                f'font-family:Inter,sans-serif;cursor:pointer;">{lbl}</a></div>',
+                unsafe_allow_html=True,
+            )
+            if st.button(lbl, key=f"ft_{pid}", use_container_width=True):
+                st.session_state.page = pid
+                st.rerun()
 
-    col_copy, col_logout = st.columns([5, 1])
-    with col_copy:
-        st.markdown(
-            f'<div style="padding:.35rem 0;">'
-            f'<span style="font-family:Rajdhani;font-size:.68rem;color:{accent};">'
-            f'IQLE Platform</span>'
-            f'<span style="font-size:.62rem;color:#3d5470;"> &nbsp;·&nbsp; '
-            f'PT Pindad &nbsp;·&nbsp; Universitas Pertahanan RI &nbsp;·&nbsp; © {year}'
-            f'</span></div>',
-            unsafe_allow_html=True,
-        )
-    with col_logout:
+    with cols[-1]:
         if st.button("⏻ Logout", key="ft_logout", use_container_width=True):
-            from utils.auth import logout
             logout()
 
+    # Bottom bar
+    role  = st.session_state.get("role", "viewer")
+    user  = st.session_state.get("user", {})
+    uname = user.get("full_name") or user.get("username", "")
+    rlbl  = "Admin" if role == "admin" else "User"
+    rc    = accent if role == "admin" else "#ffd700"
 
-# ── Reusable UI components ────────────────────────────────────
+    st.markdown(
+        f'<div style="display:flex;justify-content:space-between;align-items:center;'
+        f'padding:.3rem 0;margin-top:.15rem;border-top:1px solid #21262d;">'
+        f'<span style="font-size:.62rem;color:#3d5470;">'
+        f'IQLE Platform &nbsp;·&nbsp; PT Pindad &nbsp;·&nbsp; '
+        f'Universitas Pertahanan RI &nbsp;·&nbsp; © {year}</span>'
+        f'<span style="font-size:.62rem;color:#3d5470;">Login sebagai &nbsp;'
+        f'<span style="color:{rc};font-weight:600;">{uname} ({rlbl})</span>'
+        f'</span></div>',
+        unsafe_allow_html=True,
+    )
+
+    # Hide button labels, show only as clickable areas
+    st.markdown("""
+    <style>
+    div.footer-nav-row button {
+        background: transparent !important;
+        border: none !important;
+        height: 18px !important;
+        min-height: 18px !important;
+        padding: 0 !important;
+        opacity: 0 !important;
+        position: absolute !important;
+        top: -22px !important;
+        width: 100% !important;
+        cursor: pointer !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 
 def section_header(title, subtitle=None, icon=""):
     sub_html = (
