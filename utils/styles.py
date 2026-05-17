@@ -125,7 +125,7 @@ def render_topnav():
         ".tn-tab {"
         "  height:100%; padding:0 .9rem; background:transparent; border:none;"
         "  border-right:1px solid rgba(0,212,255,0.07); color:#7a9bb5;"
-        "  font-family:'Rajdhani',sans-serif; font-size:.72rem; font-weight:700;"
+        "  font-family:'Rajdhani',sans-serif; font-size:.85rem; font-weight:700;"
         "  letter-spacing:1px; cursor:pointer; transition:color .15s,background .15s;"
         "  white-space:nowrap; display:flex; align-items:center; gap:.3rem;"
         "}"
@@ -140,7 +140,7 @@ def render_topnav():
         ".tn-group:hover .tn-dropdown { display:block; }"
         ".tn-item {"
         "  display:block; padding:.5rem 1rem; font-family:'Rajdhani',sans-serif;"
-        "  font-size:.74rem; font-weight:600; color:#7a9bb5; text-decoration:none;"
+        "  font-size:.82rem; font-weight:600; color:#7a9bb5; text-decoration:none;"
         "  letter-spacing:.5px; transition:background .12s,color .12s,padding .12s;"
         "  border-bottom:1px solid rgba(0,212,255,0.06); cursor:pointer;"
         "}"
@@ -151,7 +151,7 @@ def render_topnav():
         "  display:flex; align-items:center; gap:.7rem; padding:0 1rem;"
         "  height:100%; border-left:1px solid rgba(0,212,255,0.12);"
         "}"
-        "#tn-greeting { font-size:.7rem; color:#7a9bb5; white-space:nowrap; }"
+        "#tn-greeting { font-size:.78rem; color:#7a9bb5; white-space:nowrap; }"
         "#tn-greeting strong { color:#dde6f0; font-weight:700; }"
         "#tn-role {"
         "  font-size:.58rem; font-weight:700; letter-spacing:1px; padding:2px 7px;"
@@ -166,7 +166,7 @@ def render_topnav():
         "  white-space:nowrap;"
         "}"
         "#tn-logout:hover { background:rgba(255,51,102,0.18); box-shadow:0 0 10px rgba(255,51,102,0.2); }"
-        ".stMainBlockContainer, .block-container { padding-top:44px !important; margin-top:0 !important; }"
+        ".stMainBlockContainer, .block-container { padding-top:44px !important; margin-top:0 !important; } #tn-bar+* { margin-top:0 !important; }"
         "[data-testid='stSidebar'] > div:first-child { padding-top:44px !important; }"
         "#tn-st-logout-wrap, #tn-st-logout-wrap * {"
         "  display:none !important; visibility:hidden !important;"
@@ -211,11 +211,21 @@ def render_topnav():
     )
     st.markdown(html, unsafe_allow_html=True)
 
-    # Hidden Streamlit logout button — disembunyikan total via CSS di atas
+    # Hidden Streamlit logout + nav buttons — semua invisible via CSS
     st.markdown('<div id="tn-st-logout-wrap">', unsafe_allow_html=True)
     if st.button("__ST_LOGOUT__", key="topnav_logout_btn"):
         from utils.auth import logout
         logout()
+    # Hidden nav buttons - satu per halaman
+    _all_pages = [
+        'home','iso9001','iatf','lifecycle','consistency','batch',
+        'iqscore','maung','whatif','hipotesis','interview',
+        'about','theory','users','settings'
+    ]
+    for _pg in _all_pages:
+        if st.button(f'NAV:{_pg}', key=f'topnav_nav_{_pg}'):
+            st.session_state.page = _pg
+            st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
 
@@ -238,7 +248,7 @@ def render_header():
 
     st.markdown(
         '<div style="background:linear-gradient(135deg,#0d1321,#111827);'
-        f'border-bottom:2px solid {accent}33;padding:1.25rem 2rem 1rem;margin-bottom:.5rem;'
+        f'border-bottom:2px solid {accent}33;padding:1rem 2rem .85rem;margin-bottom:0;'
         'position:relative;overflow:hidden;">'
         f'<div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,{accent},#0066ff);"></div>'
         '<div style="padding-left:.5rem;">'
