@@ -181,78 +181,126 @@ def render_header():
 
 
 def render_footer():
-    """Simple footer with compact nav links + logout."""
     import streamlit as st
     from utils.auth import logout
     accent = get_setting("ui_accent_color", "#00d4ff")
     year   = get_setting("footer_year", "2025")
+    role   = st.session_state.get("role", "viewer")
+    user   = st.session_state.get("user", {})
+    uname  = user.get("full_name") or user.get("username", "")
+    rlbl   = "Admin" if role == "admin" else "User"
+    rc     = accent if role == "admin" else "#ffd700"
 
     st.markdown(
-        '<div style="margin-top:2.5rem;border-top:1px solid #21262d;padding-top:.75rem;"></div>',
+        '<div style="margin-top:3rem;border-top:1px solid rgba(0,212,255,0.12);'
+        'padding-top:1.5rem;"></div>',
         unsafe_allow_html=True,
     )
 
-    # One row of nav links
-    pages = [
-        ("home","Dashboard"),("iso9001","ISO 9001"),("iatf","IATF"),
-        ("lifecycle","Lifecycle"),("consistency","Konsistensi"),("batch","Batch"),
-        ("iqscore","IQ Score"),("maung","MAUNG MV3"),("whatif","What-If"),
-        ("hipotesis","Hipotesis"),("interview","Wawancara"),
-        ("about","About"),("theory","Teori"),("users","Users"),("settings","Settings"),
-    ]
+    c1, c2, c3, c4 = st.columns(4)
 
-    cur = st.session_state.get("page", "home")
-    cols = st.columns(len(pages) + 1)
-    for col, (pid, lbl) in zip(cols, pages):
-        with col:
-            clr = accent if cur == pid else "#3d5470"
-            st.markdown(
-                f'<div style="text-align:center;padding:2px 0;">'
-                f'<a style="font-size:.65rem;color:{clr};text-decoration:none;'
-                f'font-family:Inter,sans-serif;cursor:pointer;">{lbl}</a></div>',
-                unsafe_allow_html=True,
-            )
-            if st.button(lbl, key=f"ft_{pid}", use_container_width=True):
-                st.session_state.page = pid
-                st.rerun()
+    with c1:
+        st.markdown(
+            f'<div style="font-family:Rajdhani,sans-serif;font-size:.65rem;'
+            f'font-weight:700;color:{accent};letter-spacing:2px;'
+            f'text-transform:uppercase;margin-bottom:.6rem;padding-bottom:.3rem;'
+            f'border-bottom:1px solid rgba(0,212,255,0.15);">Modul Evaluasi</div>',
+            unsafe_allow_html=True)
+        for pid, lbl in [("home","Dashboard Utama"),("iso9001","ISO 9001"),
+                          ("iatf","IATF 16949"),("lifecycle","Engineering Lifecycle"),
+                          ("consistency","Konsistensi Mutu"),("batch","Evaluasi Batch")]:
+            if st.button(lbl, key=f"ft_{pid}", use_container_width=False):
+                st.session_state.page = pid; st.rerun()
 
-    with cols[-1]:
-        if st.button("⏻ Logout", key="ft_logout", use_container_width=True):
+    with c2:
+        st.markdown(
+            f'<div style="font-family:Rajdhani,sans-serif;font-size:.65rem;'
+            f'font-weight:700;color:{accent};letter-spacing:2px;'
+            f'text-transform:uppercase;margin-bottom:.6rem;padding-bottom:.3rem;'
+            f'border-bottom:1px solid rgba(0,212,255,0.15);">Analisis & Laporan</div>',
+            unsafe_allow_html=True)
+        for pid, lbl in [("iqscore","Integrated Quality Score"),
+                          ("maung","Analisis Mutu MAUNG MV3"),
+                          ("whatif","Simulasi What-If"),
+                          ("hipotesis","Kesimpulan & Hipotesis"),
+                          ("interview","Data Wawancara")]:
+            if st.button(lbl, key=f"ft_{pid}", use_container_width=False):
+                st.session_state.page = pid; st.rerun()
+
+    with c3:
+        st.markdown(
+            f'<div style="font-family:Rajdhani,sans-serif;font-size:.65rem;'
+            f'font-weight:700;color:{accent};letter-spacing:2px;'
+            f'text-transform:uppercase;margin-bottom:.6rem;padding-bottom:.3rem;'
+            f'border-bottom:1px solid rgba(0,212,255,0.15);">Platform</div>',
+            unsafe_allow_html=True)
+        for pid, lbl in [("about","About Platform"),("theory","Teori & Referensi"),
+                          ("users","Manajemen User"),("settings","Pengaturan Platform")]:
+            if st.button(lbl, key=f"ft_{pid}", use_container_width=False):
+                st.session_state.page = pid; st.rerun()
+
+    with c4:
+        st.markdown(
+            f'<div style="font-family:Rajdhani,sans-serif;font-size:.65rem;'
+            f'font-weight:700;color:{accent};letter-spacing:2px;'
+            f'text-transform:uppercase;margin-bottom:.6rem;padding-bottom:.3rem;'
+            f'border-bottom:1px solid rgba(0,212,255,0.15);">Tentang</div>',
+            unsafe_allow_html=True)
+        st.markdown(
+            '<div style="font-size:.75rem;color:#4a6fa5;line-height:2;">'
+            'Endang Saefullah, ST, CLA<br>'
+            'Universitas Pertahanan RI<br>'
+            'PT Pindad (Persero)<br>'
+            'Magister Teknik Industri Pertahanan'
+            '</div>',
+            unsafe_allow_html=True)
+        st.markdown('<div style="margin-top:.75rem;"></div>', unsafe_allow_html=True)
+        if st.button("⏻ Logout", key="ft_logout", use_container_width=False):
             logout()
 
     # Bottom bar
-    role  = st.session_state.get("role", "viewer")
-    user  = st.session_state.get("user", {})
-    uname = user.get("full_name") or user.get("username", "")
-    rlbl  = "Admin" if role == "admin" else "User"
-    rc    = accent if role == "admin" else "#ffd700"
-
     st.markdown(
-        f'<div style="display:flex;justify-content:space-between;align-items:center;'
-        f'padding:.3rem 0;margin-top:.15rem;border-top:1px solid #21262d;">'
-        f'<span style="font-size:.62rem;color:#3d5470;">'
-        f'IQLE Platform &nbsp;·&nbsp; PT Pindad &nbsp;·&nbsp; '
-        f'Universitas Pertahanan RI &nbsp;·&nbsp; © {year}</span>'
-        f'<span style="font-size:.62rem;color:#3d5470;">Login sebagai &nbsp;'
+        f'<div style="margin-top:1.25rem;padding:.6rem 0;'
+        f'border-top:1px solid rgba(0,212,255,0.08);'
+        f'display:flex;justify-content:space-between;align-items:center;">'
+        f'<div>'
+        f'<span style="font-family:Rajdhani;font-size:.72rem;font-weight:700;'
+        f'color:{accent};">IQLE Platform</span>'
+        f'<span style="font-size:.65rem;color:#2a3f55;"> &nbsp;·&nbsp; '
+        f'Quality 4.0 Dashboard</span>'
+        f'</div>'
+        f'<div style="font-size:.62rem;color:#2a3f55;">'
+        f'PT Pindad &nbsp;·&nbsp; Universitas Pertahanan RI &nbsp;·&nbsp; © {year}'
+        f' &nbsp;·&nbsp; Login sebagai '
         f'<span style="color:{rc};font-weight:600;">{uname} ({rlbl})</span>'
-        f'</span></div>',
+        f'</div></div>',
         unsafe_allow_html=True,
     )
 
-    # Hide button labels, show only as clickable areas
+    # Style: make footer buttons look like plain links
     st.markdown("""
     <style>
-    div.footer-nav-row button {
+    div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"]
+    div[data-testid="stVerticalBlock"] button[kind="secondary"] {
         background: transparent !important;
         border: none !important;
-        height: 18px !important;
-        min-height: 18px !important;
-        padding: 0 !important;
-        opacity: 0 !important;
-        position: absolute !important;
-        top: -22px !important;
-        width: 100% !important;
-        cursor: pointer !important;
+        color: #4a6fa5 !important;
+        font-size: .75rem !important;
+        font-weight: 400 !important;
+        padding: 1px 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        box-shadow: none !important;
+        justify-content: flex-start !important;
+        font-family: Inter, sans-serif !important;
+        letter-spacing: 0 !important;
+        border-radius: 0 !important;
+        line-height: 2 !important;
+    }
+    div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"]
+    div[data-testid="stVerticalBlock"] button[kind="secondary"]:hover {
+        color: #00d4ff !important;
+        text-decoration: underline !important;
     }
     </style>
     """, unsafe_allow_html=True)
