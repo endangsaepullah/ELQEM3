@@ -10,7 +10,7 @@ st.set_page_config(
 from utils.database import init_database, get_setting
 from utils.auth import create_default_admin, is_admin, logout
 from utils.seed_data import seed_dummy_data
-from utils.styles import apply_global_style, render_header, render_footer
+from utils.styles import apply_global_style, render_topnav, render_header, render_footer
 
 try:
     init_database()
@@ -142,7 +142,8 @@ with st.sidebar:
     if st.button("Logout", key="logout_btn", use_container_width=True):
         logout()
 
-# ── Header + Content ────────────────────────────────────────
+# ── Top Navbar + Header + Content ───────────────────────────
+render_topnav()
 render_header()
 
 p = st.session_state.page
