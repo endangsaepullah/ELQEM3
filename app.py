@@ -51,7 +51,7 @@ st.markdown("""
 header[data-testid="stHeader"] { display:none !important; }
 .stMainBlockContainer, .block-container {
     max-width: 100% !important;
-    padding-top: 1rem !important;
+    /* padding-top diatur oleh render_topnav (44px) */
 }
 /* Show sidebar collapse button */
 [data-testid="stSidebarCollapsedControl"] {
