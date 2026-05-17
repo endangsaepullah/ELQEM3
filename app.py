@@ -78,16 +78,16 @@ with st.sidebar:
     _rl = "ADMIN"   if role == "admin" else "VIEWER"
 
     # Brand + user
+    _rd = "Admin" if role=="admin" else "User"
     st.markdown(
         f"<div style='padding:.4rem .2rem .7rem;"
         f"border-bottom:1px solid rgba(0,212,255,.15);margin-bottom:.4rem;'>"
         f"<div style='font-family:Rajdhani,sans-serif;font-size:1rem;"
         f"font-weight:700;color:{accent};letter-spacing:2px;'>IQLE PLATFORM</div>"
         f"<div style='font-size:.58rem;color:#3d5470;'>PT Pindad (Persero)</div>"
-        f"<div style='margin-top:.35rem;display:flex;align-items:center;gap:.35rem;'>"
-        f"<span style='font-size:.75rem;color:#c9d1d9;font-weight:600;'>{_un}</span>"
-        f"<span style='font-size:.6rem;color:{_rc};border:1px solid {_rc}55;"
-        f"border-radius:3px;padding:0 4px;font-family:Rajdhani;font-weight:700;'>{_rl}</span>"
+        f"<div style='margin-top:.4rem;font-size:.68rem;color:#7a9bb5;'>"
+        f"Login sebagai &nbsp;"
+        f"<span style='color:{_rc};font-weight:700;'>{_un} ({_rd})</span>"
         f"</div></div>",
         unsafe_allow_html=True,
     )
