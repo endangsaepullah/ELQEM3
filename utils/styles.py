@@ -186,120 +186,118 @@ def render_footer():
     accent = get_setting("ui_accent_color", "#00d4ff")
     year   = get_setting("footer_year", "2025")
     role   = st.session_state.get("role", "viewer")
-    user   = st.session_state.get("user", {})
-    uname  = user.get("full_name") or user.get("username", "")
+    user_d = st.session_state.get("user", {})
+    uname  = user_d.get("full_name") or user_d.get("username", "")
     rlbl   = "Admin" if role == "admin" else "User"
     rc     = accent if role == "admin" else "#ffd700"
 
+    # Build footer nav links as HTML — no st.button, pure onclick rerun via session
+    # We use st.columns for layout but markdown for content
     st.markdown(
         '<div style="margin-top:3rem;border-top:1px solid rgba(0,212,255,0.12);'
         'padding-top:1.5rem;"></div>',
         unsafe_allow_html=True,
     )
 
-    c1, c2, c3, c4 = st.columns(4)
+    COLS = [
+        ("Modul Evaluasi", [
+            ("home","Dashboard Utama"),("iso9001","ISO 9001"),
+            ("iatf","IATF 16949"),("lifecycle","Engineering Lifecycle"),
+            ("consistency","Konsistensi Mutu"),("batch","Evaluasi Batch"),
+        ]),
+        ("Analisis & Laporan", [
+            ("iqscore","Integrated Quality Score"),
+            ("maung","Analisis Mutu MAUNG MV3"),
+            ("whatif","Simulasi What-If"),
+            ("hipotesis","Kesimpulan & Hipotesis"),
+            ("interview","Data Wawancara"),
+        ]),
+        ("Platform", [
+            ("about","About Platform"),("theory","Teori & Referensi"),
+            ("users","Manajemen User"),("settings","Pengaturan Platform"),
+        ]),
+        ("Tentang", []),  # static info
+    ]
 
-    with c1:
-        st.markdown(
-            f'<div style="font-family:Rajdhani,sans-serif;font-size:.65rem;'
-            f'font-weight:700;color:{accent};letter-spacing:2px;'
-            f'text-transform:uppercase;margin-bottom:.6rem;padding-bottom:.3rem;'
-            f'border-bottom:1px solid rgba(0,212,255,0.15);">Modul Evaluasi</div>',
-            unsafe_allow_html=True)
-        for pid, lbl in [("home","Dashboard Utama"),("iso9001","ISO 9001"),
-                          ("iatf","IATF 16949"),("lifecycle","Engineering Lifecycle"),
-                          ("consistency","Konsistensi Mutu"),("batch","Evaluasi Batch")]:
-            if st.button(lbl, key=f"ft_{pid}", use_container_width=False):
-                st.session_state.page = pid; st.rerun()
+    st.markdown('<div class="iqle-footer">', unsafe_allow_html=True)
+    cols = st.columns(4)
 
-    with c2:
-        st.markdown(
-            f'<div style="font-family:Rajdhani,sans-serif;font-size:.65rem;'
-            f'font-weight:700;color:{accent};letter-spacing:2px;'
-            f'text-transform:uppercase;margin-bottom:.6rem;padding-bottom:.3rem;'
-            f'border-bottom:1px solid rgba(0,212,255,0.15);">Analisis & Laporan</div>',
-            unsafe_allow_html=True)
-        for pid, lbl in [("iqscore","Integrated Quality Score"),
-                          ("maung","Analisis Mutu MAUNG MV3"),
-                          ("whatif","Simulasi What-If"),
-                          ("hipotesis","Kesimpulan & Hipotesis"),
-                          ("interview","Data Wawancara")]:
-            if st.button(lbl, key=f"ft_{pid}", use_container_width=False):
-                st.session_state.page = pid; st.rerun()
+    for col, (title, items) in zip(cols[:3], COLS[:3]):
+        with col:
+            st.markdown(
+                f'<div style="font-family:Rajdhani,sans-serif;font-size:.63rem;'
+                f'font-weight:700;color:{accent};letter-spacing:2px;'
+                f'text-transform:uppercase;margin-bottom:.5rem;padding-bottom:.25rem;'
+                f'border-bottom:1px solid rgba(0,212,255,0.12);">{title}</div>',
+                unsafe_allow_html=True)
+            for pid, lbl in items:
+                if st.button(lbl, key=f"ft_{pid}"):
+                    st.session_state.page = pid
+                    st.rerun()
 
-    with c3:
+    with cols[3]:
         st.markdown(
-            f'<div style="font-family:Rajdhani,sans-serif;font-size:.65rem;'
+            f'<div style="font-family:Rajdhani,sans-serif;font-size:.63rem;'
             f'font-weight:700;color:{accent};letter-spacing:2px;'
-            f'text-transform:uppercase;margin-bottom:.6rem;padding-bottom:.3rem;'
-            f'border-bottom:1px solid rgba(0,212,255,0.15);">Platform</div>',
+            f'text-transform:uppercase;margin-bottom:.5rem;padding-bottom:.25rem;'
+            f'border-bottom:1px solid rgba(0,212,255,0.12);">Tentang</div>'
+            f'<div style="font-size:.75rem;color:#4a6fa5;line-height:2.1;">'
+            f'Endang Saefullah, ST, CLA<br>'
+            f'Universitas Pertahanan RI<br>'
+            f'PT Pindad (Persero)<br>'
+            f'Magister Teknik Industri Pertahanan'
+            f'</div>',
             unsafe_allow_html=True)
-        for pid, lbl in [("about","About Platform"),("theory","Teori & Referensi"),
-                          ("users","Manajemen User"),("settings","Pengaturan Platform")]:
-            if st.button(lbl, key=f"ft_{pid}", use_container_width=False):
-                st.session_state.page = pid; st.rerun()
-
-    with c4:
-        st.markdown(
-            f'<div style="font-family:Rajdhani,sans-serif;font-size:.65rem;'
-            f'font-weight:700;color:{accent};letter-spacing:2px;'
-            f'text-transform:uppercase;margin-bottom:.6rem;padding-bottom:.3rem;'
-            f'border-bottom:1px solid rgba(0,212,255,0.15);">Tentang</div>',
-            unsafe_allow_html=True)
-        st.markdown(
-            '<div style="font-size:.75rem;color:#4a6fa5;line-height:2;">'
-            'Endang Saefullah, ST, CLA<br>'
-            'Universitas Pertahanan RI<br>'
-            'PT Pindad (Persero)<br>'
-            'Magister Teknik Industri Pertahanan'
-            '</div>',
-            unsafe_allow_html=True)
-        st.markdown('<div style="margin-top:.75rem;"></div>', unsafe_allow_html=True)
-        if st.button("⏻ Logout", key="ft_logout", use_container_width=False):
+        st.markdown('<div style="margin-top:.6rem;"></div>', unsafe_allow_html=True)
+        if st.button("⏻ Logout", key="ft_logout"):
             logout()
 
     # Bottom bar
+    st.markdown('</div>', unsafe_allow_html=True)  # close iqle-footer
     st.markdown(
-        f'<div style="margin-top:1.25rem;padding:.6rem 0;'
-        f'border-top:1px solid rgba(0,212,255,0.08);'
+        f'<div style="margin-top:1.25rem;padding:.55rem 0;'
+        f'border-top:1px solid rgba(0,212,255,0.07);'
         f'display:flex;justify-content:space-between;align-items:center;">'
-        f'<div>'
-        f'<span style="font-family:Rajdhani;font-size:.72rem;font-weight:700;'
+        f'<span style="font-family:Rajdhani;font-size:.7rem;font-weight:700;'
         f'color:{accent};">IQLE Platform</span>'
-        f'<span style="font-size:.65rem;color:#2a3f55;"> &nbsp;·&nbsp; '
-        f'Quality 4.0 Dashboard</span>'
-        f'</div>'
-        f'<div style="font-size:.62rem;color:#2a3f55;">'
+        f'<span style="font-size:.62rem;color:#2a3f55;">'
         f'PT Pindad &nbsp;·&nbsp; Universitas Pertahanan RI &nbsp;·&nbsp; © {year}'
         f' &nbsp;·&nbsp; Login sebagai '
         f'<span style="color:{rc};font-weight:600;">{uname} ({rlbl})</span>'
-        f'</div></div>',
+        f'</span></div>',
         unsafe_allow_html=True,
     )
 
-    # Style: make footer buttons look like plain links
+    # CSS footer — all buttons as plain text links
     st.markdown("""
     <style>
-    div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"]
-    div[data-testid="stVerticalBlock"] button[kind="secondary"] {
+    .iqle-footer button {
         background: transparent !important;
         border: none !important;
+        border-radius: 0 !important;
         color: #4a6fa5 !important;
         font-size: .75rem !important;
         font-weight: 400 !important;
-        padding: 1px 0 !important;
-        height: auto !important;
+        font-family: Inter, sans-serif !important;
+        letter-spacing: 0 !important;
+        padding: 0 !important;
+        height: 1.6rem !important;
         min-height: 0 !important;
         box-shadow: none !important;
         justify-content: flex-start !important;
-        font-family: Inter, sans-serif !important;
-        letter-spacing: 0 !important;
-        border-radius: 0 !important;
-        line-height: 2 !important;
+        width: auto !important;
     }
-    div[data-testid="stVerticalBlock"] div[data-testid="stVerticalBlock"]
-    div[data-testid="stVerticalBlock"] button[kind="secondary"]:hover {
+    .iqle-footer button:hover {
         color: #00d4ff !important;
+        text-decoration: underline !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+    .iqle-footer button[kind="primary"] {
+        color: #ff6b6b !important;
+    }
+    .iqle-footer button[kind="primary"]:hover {
+        color: #ff3366 !important;
         text-decoration: underline !important;
     }
     </style>
